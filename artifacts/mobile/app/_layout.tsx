@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -6,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthProvider } from '@/context/AuthContext';
 import { AppModeProvider } from '@/context/AppModeContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -19,6 +21,7 @@ import * as SplashScreen from 'expo-splash-screen';
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+const LOGO = require('@/assets/images/madarik-logo.png');
 
 function RootLayoutNav() {
   return (
@@ -49,7 +52,15 @@ export default function RootLayout() {
     if (fontsLoaded || fontError) SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  // Branded splash instead of white blank screen
+  if (!fontsLoaded && !fontError) {
+    return (
+      <View style={styles.splash}>
+        <Image source={LOGO} style={styles.splashLogo} resizeMode="contain" />
+        <ActivityIndicator color="#4f46e5" size="large" style={{ marginTop: 40 }} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>
@@ -57,11 +68,13 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
-              <AuthProvider>
-                <AppModeProvider>
-                  <RootLayoutNav />
-                </AppModeProvider>
-              </AuthProvider>
+              <LanguageProvider>
+                <AuthProvider>
+                  <AppModeProvider>
+                    <RootLayoutNav />
+                  </AppModeProvider>
+                </AuthProvider>
+              </LanguageProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
@@ -69,3 +82,16 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    backgroundColor: '#04071a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashLogo: {
+    width: 260,
+    height: 170,
+  },
+});
