@@ -1,0 +1,126 @@
+# 🤖 System Prompt & Refinement Specification for "Madrik" AI Platform
+
+You are an expert Frontend Engineer and UI/UX developer. Your task is to refactor, debug, and fully implement the core user interface screens of the Madrik (مدارك) smart banking mobile application. 
+
+Below is an exhaustive, highly detailed layout and functional specification matching the design blueprints. You must resolve all layout clippings, fix broken routing links, and implement interactive AI chat components.
+
+---
+
+## 🎨 Global Design Tokens & UI Guidelines (Strict Adherence Required)
+
+Ensure your CSS/Tailwind definitions adhere strictly to these specs across all implemented modules:
+*   **Color Palette:**
+    *   `Primary Midnight Blue`: `#1A237E` (Used for header cards, hero blocks, and key UI overlays)
+    *   `Interactive Purple / Violet`: `#6C5CE7` (Used for buttons, active state indicators, and focus outlines)
+    *   `Positive Trend Green`: `#00B894` (Used for transaction deposits, positive percentages, and success states)
+    *   `Alert / Warning Red`: `#D63031` (Used for volatility alerts, withdrawals, and system critical items)
+    *   `Light Neutral Grey`: `#F5F6FA` (Used as background blocks for cards or list items)
+*   **Typography & Shapes:**
+    *   **Font-family:** Sans-serif rendering (`Inter` or `Poppins`).
+    *   **Spacing & Grid:** Consistent `padding` and `margins` using scale sizes `8px`, `16px`, `24px`.
+    *   **Corners:** Global `border-radius: 16px` for all cards, containers, input boxes, and interactive triggers.
+
+---
+
+## ❌ Core Layout Issues & Technical Solutions
+
+### 1️⃣ Problem: Truncated Home Screen Layout (Viewport Clipping)
+*   **Detailed Symptom:** The Home Screen view does not scroll cleanly. Multiple essential blocks (such as the recent transaction ledgers, performance scores, and balance widgets) are cutoff or crash directly against the fixed bottom navigation tab bar due to fixed layout containers with rigid height limitations.
+*   **Solution:**
+    *   Apply fluid metrics: set wrappers to `height: auto`, replace absolute container bounding restrictions, and utilize `overflow-y: scroll` or `overflow-y: auto` to establish an elastic viewport.
+    *   Provide a bottom padding safety-margin of `80px` beneath the scrollable list so the content is never clipped by the bottom tab bar.
+*   **Deconstructed Home Screen UI Tree to Implement (Top to Bottom):**
+    1.  **Welcome Header Block:**
+        *   An inline row showing a circular avatar thumbnail representing the user "Noura Alqahtani" on the left, flanked by a text container with "Welcome back" as a muted caption and "Noura" in bold typeface.
+        *   On the right side of the header row, render two interactive action icons: the Notification Bell (configured with standard click-routing) and an Exit/Log out trigger.
+        *   Directly beneath, add the subtitle string: "Let's make smartest investment".
+    2.  **"Today's AI Insight" Card:**
+        *   A solid dark indigo container with a subtle background gradient.
+        *   Includes a white title: "Today's AI Insight".
+        *   Insight statement: "Your investment behavior is stable."
+        *   Metadata labels stacked vertically: "Risk Profile: Moderate" and "Confidence Score: 84%".
+        *   On the bottom right of the card, place an interactive [View Analysis] action button with a clean white/translucent background.
+        *   Include a horizontal page-indicator dot slider below the card representing multiple insight slides.
+    3.  **Horizontal Balance Cards Carousel:**
+        *   **Card 1 (Primary Account):** Dark navy background containing the text "Balance", a large numeric representation reading "8500 ⨎" (or SAR), a subtitle card number label with an obfuscated pattern: "2412 7512 3412 3456", and an inline eye toggle icon to switch visibility state.
+        *   **Card 2 (Secondary Business/Cash):** Partially visible on the right, displaying a white background, containing label "Balance", amount "150", and obfuscated string "6542...".
+    4.  **Three-Column Behavioral Metrics Row:**
+        *   Column A (Portfolio overview): Displays a square widget with a stylized dynamic green line graph overlay or trend symbol displaying "+3.2%".
+        *   Column B (Behavioral Score): A prominent circular progress component displaying a large numeric text indicator representing score [87] and captioned with "behavioral Score".
+        *   Column C (Emotion Detection): Displays a target crosshair radar icon captioned with "Emotion Detection".
+    5.  **Recent Activities Transaction List:**
+        *   A row displaying the header text "Recent Activities" on the left, and an interactive "See all >" link on the right.
+        *   Directly below, display the subtitle date label: "Monday 22/06/26".
+        *   Populate three transaction item list items wrapped in a light background card:
+            *   Item 1: Icon/symbol pointing down-left (↘), label "MadarikC", caption "Project bonus", and price tag rendered in green: +300.00 ⨎.
+            *   Item 2: Icon/symbol pointing up-right (↗), label "muvi cinema", caption "Movie tickets", and price tag in red: -130.00 ⨎.
+            *   Item 3: Icon/symbol pointing up-right (↗), label "Zara", caption "Payments", and price tag in red: -249.00 ⨎.
+    6.  **Bottom Navigation Tab Bar:** Fixed to the layout viewport bottom. Items include: Home (Active state showing #6C5CE7 highlight), Insights, Ask Modrik, and Settings.
+
+---
+
+### 2️⃣ Problem: Broken Notification Navigation Router
+*   **Detailed Symptom:** Pressing the top-right Notification Bell icon or other system navigation shortcuts fails to transition the view. The route handler for notifications is entirely unmapped.
+*   **Solution:** Map and implement standard transitions pushing `/notifications` directly onto the navigation path stack.
+*   **Deconstructed Notifications Screen UI Tree to Implement:**
+    1.  **Navigation Header:** Includes a clickable back arrow icon < adjacent to bold title "Notifications".
+    2.  **Global Filter Search bar:** A standard rounded input field containing a search vector icon with placeholder: "Search notifications, bots, or assets...".
+    3.  **Horizontal Filter Pills:** A flex row showing quick filter badges representing options: All (selected style with dynamic background), Emotional, Insights, and Transact.
+    4.  **Dynamic Unread Indicators:** Sub-header block titled "RECENT ACTIVITY", right-flanked with a bold unread badge count reading "4 UNREAD".
+    5.  **Interactive Cards Array:**
+        *   **Volatility Warning Alert Card:**
+            *   Left margin highlight of Warning Red `#D63031`.
+            *   Title: "Market Volatility Warning" (marked with a prominent tag: "Emotional Alert").
+            *   Sub-metadata: Timestamp reading "Just Now".
+            *   Content Body: "Crypto assets are down 6% in the last hour. MindBot detected elevated anxiety signals and suggests a breathing intervention."
+            *   Action button strip with clear flex layouts: [Snooze emotional alerts for 24h], [Start Intervention], and [View Charts].
+        *   **Stability Shift Card:**
+            *   Left margin highlight of Amber Gold `#E67E22`.
+            *   Title: "Emotional Stability Shift" (marked with tag: "Behavioral Insight").
+            *   Sub-metadata: Timestamp reading "42m ago".
+            *   Content Body: "Your Emotional Stability Index changed to 72% (+4%). This trend suggests better decision-making under stress. Review AI insights."
+            *   Action button: [View Report].
+        *   **Security Alert Card:**
+            *   Left margin highlight of Security Blue `#1A237E`.
+            *   Title: "New Device Detected" (marked with tag: "Security").
+            *   Sub-metadata: Timestamp reading "5h ago".
+            *   Content Body: "A new sign-in was detected from 'iPhone 13' in San Francisco, CA. Was this you? Your account is currently protected."
+
+---
+
+### 3️⃣ Problem: Static & Rigid "Ask Modrik" Chatbot Component
+*   **Detailed Symptom:** The chat dashboard serves as a rigid decision-tree card. The text field input is missing or static, forcing users to interact exclusively through predefined selection blocks. They cannot compose customized, open-ended textual entries.
+*   **Solution:** Transform this module into an authentic, state-controlled conversational messenger view.
+*   **Deconstructed Conversational UI Specifications to Implement:**
+    1.  **Header Component:** Title: "Modrik", containing a notification bell on the top right.
+    2.  **Date-Stamp Separator:** Center aligned text: "TODAY • 14:42".
+    3.  **Bot Identity Header:** Inline row showing a robotic assistant icon, title "Modrik", label badge "AI Analyst", and caption "Analyzing market sentiment...".
+    4.  **Bot Message Bubble:** A solid dark blue card containing the dynamic advice text block:
+        *   "Hi Noura! I noticed the crypto market is experiencing a sudden 6% drop, and you've opened the app 4 times in the last hour. Take a deep breath. Historically, holding during this phase saved you money."
+        *   Nest a mini-card inside: "Historical Recovery: ⨎ 1,200 saved".
+        *   Prompt message below mini-card: "Would you like to lock your panic-sell button for the next 24 hours?".
+    5.  **Status Indicator:** Render dynamic status indicator reading "Modrik is calculating risks...".
+    6.  **Interactive Choices Strip:** Horizontal quick choice buttons: [Yes, protect my portfolio], [Show History], and [Talk it out].
+    7.  **NEW FEATURE - Open Text Input System:**
+        *   Create and pin an interactive input form panel directly above the bottom navigation bar.
+        *   Implement an <input type="text"> element with placeholder: "Type a message, or ask Modrik about your assets...".
+        *   Flank the input box with a functional Send Button styled with a violet arrow icon `#6C5CE7`.
+        *   Implement a reactive text submission state handler:
+            *   When the user types and hits send, append their prompt directly to the chat history.
+            *   Position the user message bubble on the right side of the chat view.
+            *   Position the assistant's response on the left side of the chat view.
+            *   Trigger a dynamic typing dots indicator animation during async model calls.
+
+---
+
+## 🛠️ Code Implementation Targets
+
+1.  **Verify Routing Matrix:** Complete navigation path logic mappings across the entire application interface:
+    `Home Screen` ⇄ `/notifications`
+    `Home Screen` ⇄ `/insights`
+    `Home Screen` ⇄ `/ask-modrik` (Chat view)
+    `Home Screen` ⇄ `/settings`
+2.  **Resolve CSS Containers:** Ensure zero vertical clipping by replacing arbitrary container bounds on page wrappers with responsive flex settings.
+3.  **Validate Active States:** Highlight bottom tab bar navigation item nodes precisely depending on the route state.
+
+Apply these engineering adjustments immediately to the codebase. Maintain clean, decoupled, and well-documented structural elements.
