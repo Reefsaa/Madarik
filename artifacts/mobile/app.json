@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/madarik-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#04071a"
+      "backgroundColor": "#3533cd"
     },
     "ios": {
       "supportsTablet": false
