@@ -208,7 +208,11 @@ export default function AIScreen() {
         </View>
       )}
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, marginBottom: Platform.OS === 'web' ? 84 : 49 + insets.bottom }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? topPad + 60 : 0}
+      >
         <FlatList
           ref={flatRef}
           data={messages}

@@ -1,0 +1,36 @@
+Please review the following screenshots and implement immediate fixes for the UI layout bugs across these three screens:
+
+1️⃣ Notifications Screen (Massive Blank Space Bug)
+The Bug: There is a massive, incorrect white vertical space between the horizontal filter pills (All, Emotional, etc.) and the "RECENT ACTIVITY" section. The layout pushes the content down, ruining the information density.
+
+The Fix:
+
+Check for accidental layout spacers, excessive margins (my-32 or mt-64), or any parent flex container using justify-content: space-between with an unconstrained height.
+
+Bring the "RECENT ACTIVITY" section directly below the filter pills with a standard padding/margin of 24px (mt-6).
+
+2️⃣ Home Screen (Truncated/Clipped Content & Tab Bar Overlay)
+The Bug: The lower navigation cards (Smart Insights, AI Report) are completely cut off and rendering behind an un-scrolled blank layout wrapper just above the bottom menu bar. The user cannot scroll further to see the full content.
+
+The Fix:
+
+Remove rigid max-height or overflow-hidden constraints from the main page wrapper.
+
+Ensure the screen wrapper uses dynamic heights like min-h-screen and set layout scrolling to overflow-y-auto.
+
+Add a safe bottom padding (pb-24 or pb-[100px]) at the very end of the scrollable container so the final row of cards completely clears the fixed navigation menu bar when scrolled.
+
+3️⃣ Chatbot Screen ("Ask Modrik" Input Box Hidden behind Menu Bar)
+The Bug: The text input field at the bottom is completely missing/invisible because it is trapped and rendering directly behind the fixed bottom tab bar.
+
+The Fix:
+
+Increase the z-index of the chat input form container so it stands above layout layers if needed, or better, anchor it to the safe area just above the fixed bottom menu bar.
+
+Structure the chat screen using a flex column container (flex flex-col h-screen):
+
+Top header and chat history list should take up fluid space (flex-grow overflow-y-auto).
+
+The input field container must be pinned directly at the base using a fixed block, layered appropriately right above the active view container boundary but below or above the navigation depending on your layout nested architecture, ensuring it's fully interactable and never overlapped.
+
+Please scan the layout components of these screens and refactor the CSS/Tailwind properties to resolve these padding, z-index, and scroll issues immediately.

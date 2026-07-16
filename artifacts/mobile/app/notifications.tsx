@@ -118,20 +118,22 @@ export default function NotificationsScreen() {
       </View>
 
       {/* ── Filter pills ──────────────────────────────────────────────── */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-        {FILTERS.map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterPill, activeFilter === f && styles.filterPillActive]}
-            onPress={() => setActiveFilter(f)}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.filterPillText, activeFilter === f && styles.filterPillTextActive]}>
-              {f}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.filterWrap}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          {FILTERS.map((f) => (
+            <TouchableOpacity
+              key={f}
+              style={[styles.filterPill, activeFilter === f && styles.filterPillActive]}
+              onPress={() => setActiveFilter(f)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.filterPillText, activeFilter === f && styles.filterPillTextActive]}>
+                {f}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* ── Card list ─────────────────────────────────────────────────── */}
       <ScrollView
@@ -231,7 +233,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 13, color: '#111827', fontFamily: 'Inter_400Regular' },
 
   // Filter pills
-  filterRow:  { paddingHorizontal: 16, gap: 8, marginBottom: 16, alignItems: 'center' },
+  filterWrap: { height: 52 },
+  filterRow:  { paddingHorizontal: 16, gap: 8, alignItems: 'center', height: 52 },
   filterPill: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7, backgroundColor: '#F5F6FA', borderWidth: 1, borderColor: '#e5e7eb' },
   filterPillActive: { backgroundColor: '#6C5CE7', borderColor: '#6C5CE7' },
   filterPillText:   { fontSize: 12, color: '#6b7280', fontFamily: 'Inter_500Medium' },

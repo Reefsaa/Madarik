@@ -39,7 +39,7 @@ export default function PersonalHome() {
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={{ paddingBottom: 140 }}
+      contentContainerStyle={{ paddingBottom: Platform.OS === 'web' ? 180 : 120 }}
       showsVerticalScrollIndicator={false}
     >
       {/* ── Welcome Header ─────────────────────────────────────────────── */}
