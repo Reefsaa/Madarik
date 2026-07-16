@@ -1,0 +1,31 @@
+Critical Bug: The Chatbot Responses are Hardcoded / Static (Fake AI Behavior)
+The Bug: The "Ask Modrik" screen is behaving like a static mock-up. As seen in the logs/screens, when the user types a dynamic prompt (e.g., "I don't know"), the bot completely ignores the user's input context and lazily re-renders the exact same pre-baked template message: "Abdulrahman, your financial health is 87/100...". This makes the AI engine look completely fake and unresponsive.
+
+The Goal: Transform this module into a truly dynamic, asynchronous conversational interface powered by an actual AI API integration.
+
+🛠️ Technical Implementation Requirements:
+De-hardcode the Message State:
+
+Locate the chat submission handler (e.g., handleSendMessage or handleSubmit).
+
+Stop appending hardcoded text blocks to the chat stream array.
+
+Integrate Dynamic API Route Hook:
+
+Ensure that when the user hits the send button, the raw string text from the <input> component is captured in a state variable.
+
+Send an asynchronous POST request to the backend backend endpoint (e.g., /api/chat or directly using the provided AI Token setup) containing the active user message history.
+
+Implement System Instructions / Context Provisioning:
+
+Feed the LLM prompt with a tailored system context so it answers intelligently based on the application's true purpose:
+
+Plaintext
+"You are Modrik, an advanced Smart Banking AI Analyst. You provide personalized business cash flow forecasting and investment assistance. Always respond directly, dynamically, and contextually to the user's exact inputs. Do not repeat a fixed script."
+UI Feedback Loop:
+
+While the API request is pending, display a standard "Modrik is typing..." or dynamic loading dots indicator animation component in the message stream.
+
+Once the promise resolves, inject the actual string returned from the language model dynamically into a new response bubble on the left.
+
+Refactor the chat logic immediately to completely eliminate this static behavior and ensure true conversational AI responsiveness.

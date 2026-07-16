@@ -117,24 +117,100 @@ export default function AIScreen() {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
+    // Capture history (newest-first in state → reverse for API)
+    const historyForApi = [...messages]
+      .reverse()
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.text }));
+    historyForApi.push({ role: 'user', content: trimmed });
+
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text: trimmed, time: nowTime() };
     setMessages(prev => [userMsg, ...prev]);
     setInput('');
     setLoading(true);
 
-    // Simulate Modrik "calculating risks..."
-    const delay = 800 + Math.random() * 700;
-    await new Promise(r => setTimeout(r, delay));
+    const aiMsgId = `ai-${Date.now()}`;
 
+    // Determine API URL (works on web via Replit path routing; native falls back to local)
+    const apiUrl =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? `${window.location.origin}/api/chat`
+        : null;
+
+    if (apiUrl) {
+      try {
+        const resp = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: historyForApi, mode: mode ?? 'personal' }),
+        });
+
+        if (!resp.ok || !resp.body) {
+          throw new Error(`HTTP ${resp.status}`);
+        }
+
+        // Insert empty streaming bubble, dismiss typing indicator
+        setLoading(false);
+        setMessages(prev => [
+          { id: aiMsgId, role: 'assistant', text: '', time: nowTime() },
+          ...prev,
+        ]);
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let fullText = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.done) break;
+              if (data.error) throw new Error(data.error);
+              if (data.content) {
+                fullText += data.content;
+                setMessages(prev =>
+                  prev.map(m => m.id === aiMsgId ? { ...m, text: fullText } : m)
+                );
+              }
+            } catch { /* skip malformed SSE lines */ }
+          }
+        }
+
+        // If stream ended with no content, fall through to local fallback
+        if (!fullText) throw new Error('Empty stream');
+        return;
+      } catch {
+        // Fall through to local fallback below
+        setLoading(false);
+      }
+    }
+
+    // ── Local fallback (no API URL, API unavailable, or empty stream) ─────────
+    const delay = 800 + Math.random() * 600;
+    if (loading) {
+      await new Promise(r => setTimeout(r, delay));
+      setLoading(false);
+    }
     const response = getLocalResponse(trimmed, mode ?? 'business', firstName);
-    setLoading(false);
-    setMessages(prev => [{
-      id: `ai-${Date.now()}`,
-      role: 'assistant',
-      text: response.text,
-      time: nowTime(),
-      miniCard: response.miniCard,
-    }, ...prev]);
+    setMessages(prev => {
+      const existing = prev.find(m => m.id === aiMsgId);
+      const updated: Message = {
+        id: aiMsgId,
+        role: 'assistant',
+        text: response.text,
+        time: nowTime(),
+        miniCard: response.miniCard,
+      };
+      return existing
+        ? prev.map(m => m.id === aiMsgId ? updated : m)
+        : [updated, ...prev];
+    });
   };
 
   const renderItem = ({ item }: { item: Message }) => {
