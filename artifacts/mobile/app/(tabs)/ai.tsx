@@ -39,42 +39,132 @@ function nowTime() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── Local knowledge base ─────────────────────────────────────────────────────
-function getLocalResponse(text: string, mode: string, firstName: string): { text: string; miniCard?: { label: string; value: string } } {
-  const q = text.toLowerCase();
+// ─── Local knowledge engine ───────────────────────────────────────────────────
+// Matches by intent priority. Falls through to a context-appropriate default
+// that varies so repeated unknown queries don't feel identical.
 
-  if (mode === 'personal') {
-    if (q.includes('score') || q.includes('behavioral') || q.includes('assessment'))
-      return { text: `${firstName}, your Behavioral Score is 87/100 — top 18% of Madarik users. Strengths: Discipline 92/100 and Stability 85/100. Growth area: patience during volatility. Would you like to take the full Monthly Behavioral Assessment?` };
-    if (q.includes('invest') || q.includes('portfolio'))
-      return { text: 'Based on your Moderate risk profile: 60% ETFs, 25% fixed income, 15% cash. Recommend a gradual +5% shift toward emerging markets — your Discipline Score supports higher-volatility instruments. Expected return: +9.2% annually.' };
-    if (q.includes('emotion') || q.includes('fomo') || q.includes('fear') || q.includes('panic') || q.includes('volatil') || q.includes('protect'))
-      return { text: `Take a deep breath, ${firstName}. Historically, holding during this phase saved you money. Your Emotional Stability Score is 88% — strong. I recommend locking the panic-sell button for 24 hours.`, miniCard: { label: 'Historical Recovery', value: '﷼ 1,200 saved' } };
-    if (q.includes('spending') || q.includes('expense'))
-      return { text: 'Spending this month: SAR 8,430. Top: Dining (SAR 2,100 · 25%), Shopping (SAR 1,850 · 22%), Transport (SAR 980 · 12%). You are 8% over your dining budget. Want an adjustment plan?' };
-    if (q.includes('goal') || q.includes('saving'))
-      return { text: 'Active goals: Emergency Fund (SAR 23,000 / 30,000 — 77%, on track for September) · Hajj Travel (SAR 8,500 / 15,000 — 57%, projected December). Savings rate 32.4% — excellent.' };
-    if (q.includes('history') || q.includes('show'))
-      return { text: 'Investment history (last 6 months): Portfolio grew +8.4%. Best month: March (+3.1%). Worst: January (-1.2%, recovered in 9 days). Your calm-hold strategy saved you from 2 panic-sell events.', miniCard: { label: 'Total Saved by Holding', value: '﷼ 2,840' } };
-    if (q.includes('lock') || q.includes('yes') || q.includes('protect'))
-      return { text: `Panic-sell protection activated for 24 hours, ${firstName}. You will need to confirm any sell order with a 10-minute cooldown period. This has historically improved outcomes for users with your profile.` };
-    if (q.includes('talk') || q.includes('stress') || q.includes('anxious'))
-      return { text: "It's completely normal to feel anxious during market dips. Here's a grounding exercise: take 3 slow breaths. Your money is invested in diversified assets — a 6% dip is within your risk tolerance. The market has recovered from every dip in the past 5 years. You're doing great." };
-    return { text: `${firstName}, your financial health is 87/100. Savings rate: 32.4% ✓. Portfolio growth: +3.2% this quarter. Behavioral Score: 87. I can analyze your investments, spending patterns, behavioral triggers, or savings goals. What would you like to explore?` };
+let _defaultRotate = 0; // cycles through fallback messages
+
+function getLocalResponse(
+  text: string,
+  mode: string,
+  firstName: string,
+): { text: string; miniCard?: { label: string; value: string } } {
+  const q = text.toLowerCase().trim();
+
+  // ── Universal intents ────────────────────────────────────────────────────
+  if (q.length === 0) return { text: `What's on your mind, ${firstName}?` };
+
+  const isGreeting   = /^(hi|hey|hello|سلام|مرحبا|هلا|صباح|مساء)\b/.test(q);
+  const isVague      = /^(ok|okay|sure|hmm|oh|ah|right|yeah|yep|nope|no|yes|k|mm|what\??|idk|i don['']?t know|not sure|dunno|ما أدري|لا أعرف)\b/.test(q) || q.length < 6;
+  const isThanks     = /thank|شكر|مشكور/.test(q);
+  const isHelp       = /help|what can you|what do you|tell me|guide|assist|ساعدني|ماذا تقدر/.test(q);
+  const isReport     = /report|summary|overview|ملخص|تقرير/.test(q);
+  const isBalance    = /balance|account|card|رصيد|حساب/.test(q);
+
+  if (isGreeting) {
+    return mode === 'personal'
+      ? { text: `Hello ${firstName}! 👋 I'm Modrik, your personal finance AI. I can help you with your portfolio, behavioral score, spending analysis, savings goals, or emotional finance coaching. What would you like to explore today?` }
+      : { text: `Hello! I'm Modrik, your business financial advisor. I have real-time access to your cash flow, expenses, revenue, and forecasts. How can I help you today?` };
   }
 
-  // Business
-  if (q.includes('cash flow') || q.includes('cashflow') || q.includes('liquidity'))
-    return { text: 'Cash flow: SAR 370K inflow vs SAR 280K outflow. Net +SAR 90K. 30-day forecast: +SAR 120K surplus. Recommendation: move SAR 45K to a high-yield business account. Cash runway: 4.2 months — healthy.' };
-  if (q.includes('expense') || q.includes('cost'))
-    return { text: 'Operational expenses SAR 280K (+3.2%). Payroll 30% (SAR 85K), Supplier Costs 22%, Rent 12%, Marketing 8%. Potential savings: bulk supplier deal (SAR 8K/month) + software consolidation (SAR 1,800/month) = SAR 12K/month.' };
-  if (q.includes('loan') || q.includes('financ'))
-    return { text: 'Pre-approved: up to SAR 500,000 at 4.5% fixed. Business Health Score 89/100. SAR 200K → SAR 17,417/month over 12 months. Shall I prepare the application?' };
-  if (q.includes('revenue') || q.includes('income'))
-    return { text: 'Revenue: SAR 310K (+12% YoY, +4.8% MoM). Client Projects 68%. Recurring subscriptions: SAR 42K/month. Q3 forecast: SAR 340K. 3 pending invoices totaling SAR 87K due this week.' };
-  if (q.includes('forecast') || q.includes('predict'))
-    return { text: 'Q3 Forecast: Revenue SAR 340K (+9.7%), Expenses SAR 295K (+5.4%), Net Profit SAR 45K. Full-year: Revenue SAR 1.28M, EBITDA margin 24%.' };
-  return { text: 'Business Health Score: 89/100 · Revenue: SAR 310K (+12%) · Cash Position: SAR 420K · Upcoming Payments: SAR 125K this week. Ask me about cash flow, expenses, loans, payroll, VAT, or forecasts.' };
+  if (isThanks) {
+    return { text: `Glad I could help, ${firstName}! Anytime you want to check your portfolio, review your spending, or talk through a financial decision — I'm right here. 💙` };
+  }
+
+  if (isHelp) {
+    return mode === 'personal'
+      ? { text: `Here's what I can do for you, ${firstName}:\n\n📊 Portfolio & investments analysis\n🧠 Behavioral score & emotional coaching\n💳 Spending breakdown & budget alerts\n🎯 Savings goals tracking\n🔒 Panic-sell protection\n📈 Investment history & recovery stats\n\nJust type what you're curious about — or pick a quick option below!` }
+      : { text: `Here's what I can help with:\n\n💵 Cash flow analysis & 30-day forecasts\n📉 Expense optimization\n🏦 Loan eligibility & financing options\n📊 Revenue trends & KPIs\n🔮 Quarterly & annual forecasts\n📑 VAT & compliance insights\n\nWhat would you like to dig into?` };
+  }
+
+  if (isReport || (mode === 'personal' && isBalance)) {
+    return mode === 'personal'
+      ? { text: `Here's your snapshot, ${firstName}:\n\n💰 Total Balance: SAR 8,650\n📈 Portfolio Growth: +3.2% this quarter\n🧠 Behavioral Score: 87/100 (top 18%)\n❤️ Emotional Stability: 88%\n💳 Savings Rate: 32.4%\n🎯 Emergency Fund: 77% complete\n\nWant me to go deeper on any of these?` }
+      : { text: `Business snapshot:\n\n💵 Revenue: SAR 310K (+12% YoY)\n📉 Expenses: SAR 280K\n📊 Net Cash Flow: +SAR 90K\n🏥 Health Score: 89/100\n🏦 Cash Position: SAR 420K\n⏰ Pending Invoices: SAR 87K this week\n\nWhat would you like to drill into?` };
+  }
+
+  // ── Personal mode intents ────────────────────────────────────────────────
+  if (mode === 'personal') {
+    if (/score|behavioral|assessment|discipline|stability/.test(q))
+      return { text: `${firstName}, your Behavioral Score is 87/100 — placing you in the top 18% of Madarik users.\n\n✅ Discipline: 92/100\n✅ Stability: 85/100\n⚠️ Patience during volatility: room to grow\n\nYour score improved +4 points this month. Would you like to take the full Behavioral Assessment to unlock personalized coaching?` };
+
+    if (/invest|portfolio|etf|stock|market|asset/.test(q))
+      return { text: `Based on your Moderate risk profile:\n\n📊 60% ETFs\n📘 25% Fixed income\n💵 15% Cash\n\nModrik recommends a gradual +5% shift toward emerging markets — your Discipline Score of 92 supports higher-volatility instruments.\n\nProjected annual return: +9.2%. Want to see a detailed rebalancing plan?` };
+
+    if (/emotion|fomo|fear|panic|stress|anxious|worried|crash|volatil|dip|drop/.test(q))
+      return {
+        text: `Take a breath, ${firstName}. Your Emotional Stability Score is 88% — you're in a strong position.\n\nHistorically, users who held through similar dips recovered fully within 9 days and avoided costly sell-offs. Locking your panic-sell button for 24 hours is the move that data supports.`,
+        miniCard: { label: 'Historical Recovery', value: '﷼ 1,200 saved' },
+      };
+
+    if (/protect|lock|yes.*portfolio|activate/.test(q))
+      return { text: `Panic-sell protection activated for 24 hours, ${firstName}. 🔒\n\nAny sell order will now require a 10-minute confirmation cooldown. This single behavior has improved outcomes for 91% of users with your profile during similar market conditions.` };
+
+    if (/spend|expense|dining|shopping|budget|buy|paid/.test(q))
+      return { text: `Spending this month: SAR 8,430\n\n🍽️ Dining: SAR 2,100 (25%) — 8% over budget\n🛍️ Shopping: SAR 1,850 (22%)\n🚗 Transport: SAR 980 (12%)\n📦 Other: SAR 3,500 (41%)\n\nQuick win: trimming dining by SAR 400/month saves SAR 4,800/year. Want an auto-budget adjustment plan?` };
+
+    if (/goal|saving|emergency|hajj|target|dream/.test(q))
+      return { text: `Your active savings goals:\n\n🏦 Emergency Fund: SAR 23,000 / 30,000 (77%) — on track for September ✅\n✈️ Hajj Travel: SAR 8,500 / 15,000 (57%) — projected December\n\nSavings rate: 32.4% — excellent! At this pace you'll hit both goals on time.` };
+
+    if (/histor|show|past|recover|previous|track record/.test(q))
+      return {
+        text: `Investment history — last 6 months:\n\n📈 Portfolio growth: +8.4%\n🏆 Best month: March (+3.1%)\n📉 Worst month: January (-1.2%, recovered in 9 days)\n🛡️ Panic-sell events avoided: 2\n\nYour calm-hold strategy is working.`,
+        miniCard: { label: 'Total Saved by Holding', value: '﷼ 2,840' },
+      };
+
+    if (/talk|breathe|calm|ground|relax/.test(q))
+      return { text: `It's completely normal to feel uncertain, ${firstName}.\n\nHere's a quick grounding exercise: take 3 slow, deep breaths.\n\nYour money is in diversified assets — a short-term dip is within your risk tolerance. The market has recovered from every correction in the past 5 years. You've already avoided 2 panic-sell events this year by staying disciplined.\n\nYou're doing great. 💙` };
+
+    // ── Vague/unknown personal ───────────────────────────────────────────
+    if (isVague) {
+      const options = [
+        `No problem! Here are some things I can dig into for you right now:\n\n• Your Behavioral Score (currently 87)\n• Portfolio & investment recommendations\n• Spending breakdown this month\n• Savings goal progress\n• Emotional finance coaching\n\nWhich one interests you?`,
+        `That's okay — let me suggest a starting point.\n\nYour most recent signal: Emotional Stability at 88% during a 6% market dip. That's strong. Want me to explain what it means for your investment strategy?`,
+        `Not sure where to start? Here's what stands out today:\n\n📈 Portfolio up +3.2% this quarter\n🧠 Behavioral Score: 87 (top 18%)\n⚠️ Dining spend 8% over budget\n\nWant me to go deeper on any of these?`,
+      ];
+      _defaultRotate = (_defaultRotate + 1) % options.length;
+      return { text: options[_defaultRotate] };
+    }
+
+    // Generic personal fallback
+    return { text: `I heard you, ${firstName}. Your financial health score is 87/100 today.\n\n📊 Savings rate: 32.4%\n📈 Portfolio growth: +3.2% this quarter\n🧠 Behavioral Score: 87\n\nTell me what you'd like to dig into — investments, spending, savings goals, or behavioral coaching.` };
+  }
+
+  // ── Business mode intents ────────────────────────────────────────────────
+  if (/cash.?flow|cashflow|liquidity|inflow|outflow/.test(q))
+    return { text: `Cash flow analysis:\n\n💵 Inflow: SAR 370K\n📤 Outflow: SAR 280K\n📊 Net: +SAR 90K\n\n30-day forecast: +SAR 120K surplus\n\nRecommendation: move SAR 45K to a high-yield business account now. Cash runway is 4.2 months — healthy. Want a breakdown by cost center?` };
+
+  if (/expense|cost|overhead|payroll|salary|wage/.test(q))
+    return { text: `Operational expenses: SAR 280K (+3.2%)\n\n👥 Payroll: SAR 85K (30%)\n🏭 Supplier Costs: 22%\n🏢 Rent: 12%\n📣 Marketing: 8%\n\n💡 Two quick wins:\n• Bulk supplier deal → save SAR 8K/month\n• Software consolidation → save SAR 1,800/month\n= SAR 117,600/year in savings. Want a detailed plan?` };
+
+  if (/loan|financ|credit|borrow|funding/.test(q))
+    return { text: `Financing pre-approval:\n\n✅ Up to SAR 500,000 at 4.5% fixed\n🏥 Business Health Score: 89/100\n\nSample: SAR 200K → SAR 17,417/month over 12 months\n\nYour score qualifies you for Tier 1 rates. Shall I prepare a full application summary?` };
+
+  if (/revenue|income|sales|invoice|client/.test(q))
+    return { text: `Revenue breakdown:\n\n📈 This month: SAR 310K (+12% YoY, +4.8% MoM)\n📁 Client Projects: 68%\n🔄 Recurring subscriptions: SAR 42K/month\n📊 Q3 forecast: SAR 340K\n\n⚠️ 3 pending invoices totalling SAR 87K due this week. Want me to draft a reminder?` };
+
+  if (/forecast|predict|q3|q4|quarter|annual|year/.test(q))
+    return { text: `Q3 Forecast:\n\n📈 Revenue: SAR 340K (+9.7%)\n📉 Expenses: SAR 295K (+5.4%)\n💰 Net Profit: SAR 45K\n\nFull-year projection: Revenue SAR 1.28M · EBITDA margin 24%\n\nTop risk: delayed receivables. Want a contingency cash flow plan?` };
+
+  if (/vat|tax|zakat|compliance|legal/.test(q))
+    return { text: `VAT & compliance status:\n\n✅ VAT filing: on time (last filed 15 Dhul Hijja)\n📊 VAT collected this quarter: SAR 46,500\n📋 Next filing deadline: 14 Muharram\n\nZakat assessment due Q1. Want me to generate a compliance checklist?` };
+
+  if (/employee|staff|hr|team|hire/.test(q))
+    return { text: `Workforce overview:\n\n👥 Total staff: 24 employees\n💵 Payroll this month: SAR 85,000\n📈 Payroll growth YoY: +4.2%\n\nCost per employee: SAR 3,542/month average. Benchmark for your sector: SAR 3,800 — you're efficient. Need an HR budget projection?` };
+
+  if (isVague) {
+    const options = [
+      `Got it — here's what I'm seeing right now in your business:\n\n• Cash flow is healthy (+SAR 90K net)\n• 3 invoices totalling SAR 87K are overdue this week\n• Expense savings of SAR 117K/year are available\n\nWhich of these should we tackle first?`,
+      `No problem. Your Business Health Score is 89/100 today. The biggest opportunity I see: two expense optimizations that save SAR 9,800/month without cutting headcount. Want me to walk you through them?`,
+      `Here are the top items on Modrik's radar for your business:\n\n🔴 SAR 87K in pending invoices (due this week)\n🟡 Supplier costs 3% above industry average\n🟢 Cash runway: 4.2 months (healthy)\n\nWant to act on any of these?`,
+    ];
+    _defaultRotate = (_defaultRotate + 1) % options.length;
+    return { text: options[_defaultRotate] };
+  }
+
+  // Generic business fallback
+  return { text: `Business snapshot:\n\n🏥 Health Score: 89/100\n💵 Revenue: SAR 310K (+12%)\n💰 Cash Position: SAR 420K\n⏰ Upcoming payments: SAR 125K this week\n\nAsk me about cash flow, expenses, loans, payroll, VAT, or revenue forecasts — I have the details ready.` };
 }
 
 const PERSONAL_QUICK = ['Yes, protect my portfolio', 'Show History', 'Talk it out', 'My behavioral score'];
