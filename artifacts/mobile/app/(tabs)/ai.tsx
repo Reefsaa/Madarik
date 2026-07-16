@@ -215,6 +215,7 @@ export default function AIScreen() {
           keyExtractor={(m) => m.id}
           renderItem={renderItem}
           inverted
+          style={{ flex: 1 }}
           contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
@@ -271,11 +272,9 @@ export default function AIScreen() {
                   : 'Ask Modrik anything...'
               }
               placeholderTextColor="#94a3b8"
-              multiline
               maxLength={500}
               returnKeyType="send"
               onSubmitEditing={() => sendMessage(input)}
-              blurOnSubmit={false}
             />
             <TouchableOpacity
               style={[styles.sendBtn, (!input.trim() || loading) && styles.sendBtnDisabled]}

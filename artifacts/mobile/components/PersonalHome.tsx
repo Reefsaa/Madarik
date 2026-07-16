@@ -39,7 +39,7 @@ export default function PersonalHome() {
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={{ paddingBottom: 100 }}
+      contentContainerStyle={{ paddingBottom: 140 }}
       showsVerticalScrollIndicator={false}
     >
       {/* ── Welcome Header ─────────────────────────────────────────────── */}
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   dot:               { width: 7,  height: 7, borderRadius: 3.5, backgroundColor: '#d1d5db' },
 
   // Dark section
-  darkSection: { backgroundColor: '#0f172a', paddingHorizontal: 16, paddingTop: 4 },
+  darkSection: { backgroundColor: '#0f172a', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 },
 
   // Balance cards
   payCard:       { borderRadius: 16, padding: 14, width: 196, marginRight: 10 },
