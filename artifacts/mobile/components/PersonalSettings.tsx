@@ -1,0 +1,140 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '@/context/AuthContext';
+import { useAppMode } from '@/context/AppModeContext';
+
+interface RowProps { icon: keyof typeof Ionicons.glyphMap; label: string; sub?: string; onPress?: () => void }
+
+function SettingRow({ icon, label, sub, onPress }: RowProps) {
+  return (
+    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.rowIcon}>
+        <Ionicons name={icon} size={18} color="#1e40af" />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        {sub ? <Text style={styles.rowSub}>{sub}</Text> : null}
+      </View>
+      <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+    </TouchableOpacity>
+  );
+}
+
+export default function PersonalSettings() {
+  const insets = useSafeAreaInsets();
+  const { user, logout } = useAuth();
+  const { setMode, clearMode } = useAppMode();
+  const topPad = Platform.OS === 'web' ? 67 : insets.top;
+  const firstName = user?.name?.split(' ')[0] || 'Noura';
+  const lastName = user?.name?.split(' ').slice(1).join(' ') || 'Alqahtani';
+  const username = user?.email?.split('@')[0] || 'norahq_';
+  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'NA';
+
+  const handleLogout = async () => {
+    await clearMode();
+    await logout();
+    router.replace('/(auth)/');
+  };
+
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
+      {/* Header with profile */}
+      <LinearGradient colors={['#0a0e27', '#1a1060', '#2d1b8e']} style={[styles.header, { paddingTop: topPad + 12 }]}>
+        <View style={styles.notifRow}>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity style={styles.notifBtn}>
+            <Ionicons name="notifications-outline" size={20} color="#c7d2fe" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Avatar */}
+        <View style={styles.avatarWrap}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.profileName}>{firstName} {lastName}</Text>
+        <TouchableOpacity style={styles.usernameRow}>
+          <Text style={styles.usernameText}>{username}</Text>
+          <Ionicons name="pencil-outline" size={13} color="#818cf8" style={{ marginLeft: 4 }} />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      {/* Settings list */}
+      <View style={styles.listSection}>
+        <SettingRow icon="person-outline" label="Personal Information" />
+        <View style={styles.divider} />
+        <SettingRow icon="card-outline" label="Cards management" />
+        <View style={styles.divider} />
+        <SettingRow icon="shield-outline" label="Privacy & Security" />
+        <View style={styles.divider} />
+        <SettingRow icon="headset-outline" label="Support" />
+      </View>
+
+      {/* Referral code */}
+      <TouchableOpacity style={styles.referralCard} activeOpacity={0.85}>
+        <Ionicons name="qr-code-outline" size={20} color="#1e40af" />
+        <Text style={styles.referralText}>Referral code</Text>
+      </TouchableOpacity>
+
+      {/* Switch to Business */}
+      <TouchableOpacity style={styles.switchCard} onPress={() => setMode('business')} activeOpacity={0.85}>
+        <Ionicons name="swap-horizontal-outline" size={18} color="#4f46e5" />
+        <Text style={styles.switchText}>Switch to Business Mode</Text>
+        <Ionicons name="chevron-forward" size={16} color="#4f46e5" />
+      </TouchableOpacity>
+
+      {/* Behavioral Assessment */}
+      <TouchableOpacity style={styles.assessCard} onPress={() => router.push('/behavioral-assessment')} activeOpacity={0.85}>
+        <Ionicons name="analytics-outline" size={18} color="#7c3aed" />
+        <Text style={styles.assessText}>Behavioral Assessment</Text>
+        <Ionicons name="chevron-forward" size={16} color="#7c3aed" />
+      </TouchableOpacity>
+
+      {/* Log out */}
+      <TouchableOpacity style={styles.logoutCard} onPress={handleLogout} activeOpacity={0.85}>
+        <Text style={styles.logoutText}>Log out</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.versionText}>Madarik v1.0.0 · Personal Mode</Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#f3f4f6' },
+  header: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 24 },
+  notifRow: { flexDirection: 'row', width: '100%', marginBottom: 16 },
+  notifBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  avatarWrap: { marginBottom: 12 },
+  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#4f46e5', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)' },
+  avatarText: { fontSize: 26, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
+  profileName: { fontSize: 20, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 4 },
+  usernameRow: { flexDirection: 'row', alignItems: 'center' },
+  usernameText: { fontSize: 13, color: '#818cf8', fontFamily: 'Inter_400Regular' },
+
+  listSection: { backgroundColor: '#fff', borderRadius: 16, marginHorizontal: 16, marginTop: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+  rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  rowLabel: { fontSize: 14, color: '#111827', fontFamily: 'Inter_500Medium' },
+  rowSub: { fontSize: 11, color: '#9ca3af', marginTop: 1, fontFamily: 'Inter_400Regular' },
+  divider: { height: 1, backgroundColor: '#f9fafb', marginLeft: 64 },
+
+  referralCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#eff6ff', borderRadius: 14, marginHorizontal: 16, marginTop: 12, paddingVertical: 14, borderWidth: 1, borderColor: '#bfdbfe' },
+  referralText: { fontSize: 14, fontWeight: '600', color: '#1e40af', fontFamily: 'Inter_600SemiBold' },
+
+  switchCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#e0e7ff' },
+  switchText: { flex: 1, fontSize: 14, color: '#4f46e5', fontFamily: 'Inter_600SemiBold' },
+
+  assessCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 10, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#ede9fe' },
+  assessText: { flex: 1, fontSize: 14, color: '#7c3aed', fontFamily: 'Inter_600SemiBold' },
+
+  logoutCard: { backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 10, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#f3f4f6' },
+  logoutText: { fontSize: 14, color: '#6b7280', fontFamily: 'Inter_500Medium' },
+
+  versionText: { textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 16, fontFamily: 'Inter_400Regular' },
+});

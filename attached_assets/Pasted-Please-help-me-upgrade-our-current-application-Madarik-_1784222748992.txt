@@ -1,0 +1,82 @@
+Please help me upgrade our current application, "Madarik" (مدارك), to support a dual-mode system (Business and Personal) within the SAME application, featuring a refreshed UI and updated user flow.
+
+Here is the complete specification for the upgrade:
+
+---
+
+### 1. Unified Logo & Theme Update
+- Replace the current placeholder logo with our official logo as shown in the design: the Arabic word "مدارك" with a sleek crescent/orbit design underneath it.
+- This logo must be displayed prominently on the Login screen, Sign Up screen, and as the brand header on both the Business and Personal dashboards.
+- Use our premium dark-blue gradient theme across all screens to keep the branding consistent.
+
+---
+
+### 2. Onboarding & Authentication Flow
+- **Log in Screen:**
+  * Inputs: Username or ID, Password.
+  * Features: "Remember me" checkbox, "Forgot Your Credentials?" link, and a "Sign up" redirect button.
+- **Sign up Screen:**
+  * Inputs: National ID / Iqama number, Mobile Number (+966), Email, First Name, Last Name, Username, and Password.
+  * Features: "I Agree to the Terms And Conditions..." checkbox and a "Log-in" redirect button.
+- **Post-Auth Selector Screen:**
+  * Immediately after a user successfully logs in or signs up (and before they see any dashboard), display a clean screen asking: "How would you like to use Madarik today?"
+  * Present two large, clickable visual card options with icons:
+    1. "Business Mode" (For managing company cash flow, business banking, revenues, and expenses).
+    2. "Personal Mode" (For smart investing, behavioral AI scoring, and personal financial health).
+  * Save their selection in the session state and redirect them to the corresponding dashboard.
+
+---
+
+### 3. Navigation & Dual-Mode Switcher
+- Keep a profile/mode switcher (toggle) in the settings and in the top navigation header so users can switch between "Business View" and "Personal View" easily at any time without logging out.
+
+---
+
+### 4. "Personal Mode" Screens & Features (React/Tailwind)
+Please scaffold and design the following screens for the Personal Mode:
+
+#### A. Personal Dashboard (Home View)
+- Header: Welcome message (e.g., "Welcome back, Noura" with an avatar, notification bell, and sign-out button).
+- Today's AI Insight Card: Displays investment behavior stability status, Risk Profile (e.g., "Moderate"), and a Confidence Score (e.g., "84%") with a "View Analysis" button.
+- Slide-able Cards Section: Showcase multiple personal cards with current balances (e.g., card displaying "Balance: 8,500" or "Balance: 150").
+- Score Badges:
+  * Portfolio Overview (+3.2%)
+  * Behavioral Score circle (e.g., "87")
+  * Emotion Detection status indicator.
+- Recent Activities List: Display a list of personal transactions with icons (e.g., MadarikC Project bonus "+300.00", muvi cinema "-130.00", Zara payments "-249.00").
+
+#### B. Smart Insights Screen (The "Insights" Tab)
+- AI Behavior Score: Show a detailed score circle (87/100, Level: Excellent) along with Stability (92%) and Discipline (84%) progress bars.
+- Emotion Detection Card: Highlight psychological trading tendencies with clickable status pills: "Rational Decisions", "Panic Selling", "FOMO Detected", "Overconfidence". Underneath, display an AI Insight warning about emotional trading.
+- Spending Analysis: A circular donut chart showing Savings Rate (e.g., 32.4%), Total Expenses, and category breakdowns (Food, Shopping, Bills).
+- Investment Activity: "Buy vs Sell" volume bar chart, horizon breakdown (Long vs Short), and a visual "Portfolio Growth" line chart.
+- Recommendations & Allocation: Display suggested assets allocation (e.g., 60% ETFs, 25% Stocks, 15% Cash), Monthly Target, and Risk Adjust indicators.
+- Financial Goals: Vertical progress bars for "Emergency Fund" (85%), "Investment Goal" (42%), and "Savings Goal" (68%).
+
+#### C. Interactive AI Chat ("Ask Modrik" Tab)
+- Create a dedicated conversational screen where our AI Analyst, "Modrik", interacts with the user.
+- Style a warning/alert bubble indicating system actions (e.g., "Modrik: I noticed the crypto market is experiencing a sudden 6% drop, and you've opened the app 4 times in the last hour. Take a deep breath...").
+- Include a quick action banner: "Yes, protect my portfolio" to dynamically lock panic-selling features for 24 hours.
+- Add bottom actions: "Show History" and "Talk it out".
+
+#### D. Behavioral & Psychological Assessment Profile Form
+- Create an onboarding/assessment questionnaire titled "Behavioral Assessment" for Personal users to calculate their risk tolerance. Include inputs for:
+  * Financial Profile: Monthly Income, Monthly Expenses, Current Savings, Current Investment (all in SAR).
+  * Experience Level: Beginner, Intermediate, Advanced.
+  * Investment Goal options: Wealth Growth, Retirement, Passive Income, etc.
+  * Risk Tolerance slider/tabs: Conservative, Moderate, Aggressive.
+  * Psychological Questions (e.g., reaction to a 20% portfolio loss, reliance on social media trends, self-rated market knowledge scale 1-10, holding periods).
+- Add an "Analyze My Profile" action button that triggers the Modrik neural engine calculation.
+
+#### E. Settings & Profile Screen
+- Top banner with user profile image, name, and username handles.
+- List items: Personal Information, Cards Management, Privacy & Security, Support, and a special "Referral Code" box.
+
+---
+
+### 5. Database & Backend Setup
+- Update our PostgreSQL database schema to include tables for:
+  * `personal_profiles` (storing national ID, risk profile, behavioral score, emotional index stability, etc.).
+  * `transactions` (flagged as either 'personal' or 'business').
+  * `behavioral_assessments` (saving user quiz answers).
+- Ensure backend API endpoints handle data and calculations separately for both Business and Personal modes depending on the active state of the application.

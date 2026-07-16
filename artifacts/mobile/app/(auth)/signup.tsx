@@ -14,31 +14,37 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import MadarikLogo from '@/components/MadarikLogo';
 
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const { signup } = useAuth();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const topPad = Platform.OS === 'web' ? 67 : insets.top;
+
+  const [form, setForm] = useState({
+    nationalId: '', mobile: '', email: '',
+    firstName: '', lastName: '', username: '', password: '',
+  });
+  const [agreed, setAgreed] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPad = Platform.OS === 'web' ? 34 : insets.bottom;
+  const set = (k: keyof typeof form) => (v: string) => setForm(p => ({ ...p, [k]: v }));
 
   const handleSignup = async () => {
-    if (!name.trim() || !email.trim() || !password.trim() || !company.trim()) {
-      setError('Please fill in all fields');
+    const { firstName, lastName, email, password, username } = form;
+    if (!firstName || !lastName || !email || !password || !username) {
+      setError('Please fill in all required fields');
       return;
     }
+    if (!agreed) { setError('Please agree to the Terms and Conditions'); return; }
     setError('');
     setLoading(true);
     try {
-      await signup(name.trim(), email.trim(), password, company.trim());
-      router.replace('/(tabs)/');
+      const name = `${firstName.trim()} ${lastName.trim()}`;
+      await signup(name, email.trim(), password, username.trim());
+      router.replace('/(auth)/mode-select');
     } catch {
       setError('Account creation failed. Please try again.');
     } finally {
@@ -46,181 +52,130 @@ export default function SignupScreen() {
     }
   };
 
-  const fields = [
-    { label: 'Full Name', value: name, setter: setName, icon: 'person-outline' as const, placeholder: 'Abdulrahman Al-Rashidi', type: 'default' as const },
-    { label: 'Business Email', value: email, setter: setEmail, icon: 'mail-outline' as const, placeholder: 'you@company.com', type: 'email-address' as const },
-    { label: 'Company Name', value: company, setter: setCompany, icon: 'briefcase-outline' as const, placeholder: 'Madarik Holdings', type: 'default' as const },
-  ];
-
   return (
-    <LinearGradient colors={['#0f172a', '#1e1b4b']} style={styles.container}>
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: bottomPad + 20 }]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0e27', '#1a1060', '#2d1b8e']}
+        style={[styles.logoSection, { paddingTop: topPad + 24 }]}
       >
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={20} color="#a5b4fc" />
-        </TouchableOpacity>
-
-        <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join 2,400+ businesses on Madarik</Text>
+        <View style={styles.globeRow}>
+          <Ionicons name="globe-outline" size={22} color="rgba(255,255,255,0.5)" />
         </View>
+        <MadarikLogo size="medium" textColor="#c7d2fe" />
+      </LinearGradient>
 
-        <View style={styles.form}>
-          {error ? (
-            <View style={styles.errorBanner}>
-              <Ionicons name="alert-circle-outline" size={15} color="#fca5a5" />
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
+      <View style={styles.sheet}>
+        <View style={styles.sheetHandle} />
+        <ScrollView
+          contentContainerStyle={styles.formContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>Sign up</Text>
+          {error ? <View style={styles.errorBanner}><Text style={styles.errorText}>{error}</Text></View> : null}
 
-          {fields.map((f) => (
-            <View key={f.label} style={styles.inputGroup}>
-              <Text style={styles.label}>{f.label}</Text>
-              <View style={styles.inputWrap}>
-                <Ionicons name={f.icon} size={16} color="#64748b" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  value={f.value}
-                  onChangeText={f.setter}
-                  placeholder={f.placeholder}
-                  placeholderTextColor="#475569"
-                  keyboardType={f.type}
-                  autoCapitalize={f.type === 'email-address' ? 'none' : 'words'}
-                />
+          <Text style={styles.fieldLabel}>National id / Iqama number</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="card-outline" size={15} color="#9ca3af" style={styles.icon} />
+            <TextInput style={styles.input} value={form.nationalId} onChangeText={set('nationalId')} placeholder="Fill your ID/Iqama" placeholderTextColor="#9ca3af" keyboardType="numeric" />
+          </View>
+
+          <Text style={styles.fieldLabel}>Mobile Number</Text>
+          <View style={styles.inputWrap}>
+            <Text style={styles.dialCode}>+966</Text>
+            <TextInput style={styles.input} value={form.mobile} onChangeText={set('mobile')} placeholder="" placeholderTextColor="#9ca3af" keyboardType="phone-pad" />
+          </View>
+
+          <Text style={styles.fieldLabel}>Email</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="mail-outline" size={15} color="#9ca3af" style={styles.icon} />
+            <TextInput style={styles.input} value={form.email} onChangeText={set('email')} placeholder="Fill your Email" placeholderTextColor="#9ca3af" keyboardType="email-address" autoCapitalize="none" />
+          </View>
+
+          <View style={styles.twoCol}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.fieldLabel}>First Name</Text>
+              <View style={[styles.inputWrap, { marginBottom: 0 }]}>
+                <TextInput style={styles.input} value={form.firstName} onChangeText={set('firstName')} placeholder="First Name" placeholderTextColor="#9ca3af" />
               </View>
             </View>
-          ))}
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.inputWrap}>
-              <Ionicons name="lock-closed-outline" size={16} color="#64748b" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Min. 8 characters"
-                placeholderTextColor="#475569"
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={16} color="#64748b" />
-              </TouchableOpacity>
+            <View style={{ width: 12 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.fieldLabel}>Last Name</Text>
+              <View style={[styles.inputWrap, { marginBottom: 0 }]}>
+                <TextInput style={styles.input} value={form.lastName} onChangeText={set('lastName')} placeholder="Last Name" placeholderTextColor="#9ca3af" />
+              </View>
             </View>
           </View>
 
+          <Text style={styles.fieldLabel}>Username</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="person-outline" size={15} color="#9ca3af" style={styles.icon} />
+            <TextInput style={styles.input} value={form.username} onChangeText={set('username')} placeholder="Fill your Username" placeholderTextColor="#9ca3af" autoCapitalize="none" />
+          </View>
+
+          <Text style={styles.fieldLabel}>Password</Text>
+          <View style={styles.inputWrap}>
+            <TextInput style={[styles.input, { flex: 1 }]} value={form.password} onChangeText={set('password')} placeholder="Fill your password" placeholderTextColor="#9ca3af" secureTextEntry={!showPass} />
+            <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+              <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={16} color="#9ca3af" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.agreeRow} onPress={() => setAgreed(!agreed)} activeOpacity={0.7}>
+            <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
+              {agreed && <Ionicons name="checkmark" size={11} color="#fff" />}
+            </View>
+            <Text style={styles.agreeText}>
+              I Agree to the Terms And Conditions and confirm that I have read and understood the Privacy Notice
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
-            style={[styles.signUpBtn, loading && styles.btnDisabled]}
+            style={[styles.signupBtn, loading && styles.btnDisabled]}
             onPress={handleSignup}
             disabled={loading}
             activeOpacity={0.85}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.signUpBtnText}>Create Account</Text>
-            )}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.signupBtnText}>Sign up</Text>}
           </TouchableOpacity>
 
-          <Text style={styles.termsText}>
-            By creating an account, you agree to our{' '}
-            <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
-          </Text>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account?</Text>
-          <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-            <Text style={styles.footerLink}> Sign In</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </LinearGradient>
+          <View style={styles.loginRow}>
+            <Text style={styles.loginPrompt}>already have an account?</Text>
+            <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
+              <Text style={styles.loginLink}> Log-in</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingHorizontal: 24 },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-  },
-  header: { alignItems: 'center', marginBottom: 32 },
-  logoCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
-    backgroundColor: '#4f46e5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoLetter: { fontSize: 28, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold' },
-  title: { fontSize: 24, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#94a3b8', fontFamily: 'Inter_400Regular' },
-
-  form: { gap: 14, marginBottom: 28 },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(239,68,68,0.15)',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.3)',
-  },
-  errorText: { fontSize: 13, color: '#fca5a5', fontFamily: 'Inter_400Regular', flex: 1 },
-
-  inputGroup: { gap: 6 },
-  label: { fontSize: 12, fontWeight: '600', color: '#94a3b8', fontFamily: 'Inter_600SemiBold' },
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 14,
-    height: 52,
-  },
-  inputIcon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 15, color: '#fff', fontFamily: 'Inter_400Regular' },
-  eyeBtn: { padding: 4 },
-
-  signUpBtn: {
-    backgroundColor: '#4f46e5',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 4,
-  },
+  container: { flex: 1, backgroundColor: '#1a1060' },
+  logoSection: { alignItems: 'center', paddingBottom: 40, position: 'relative' },
+  globeRow: { position: 'absolute', top: 44, right: 20 },
+  sheet: { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -12 },
+  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#d1d5db', alignSelf: 'center', marginTop: 12, marginBottom: 2 },
+  formContent: { paddingHorizontal: 24, paddingBottom: 40 },
+  title: { fontSize: 22, fontWeight: '700', color: '#111827', textAlign: 'center', marginTop: 6, marginBottom: 16, fontFamily: 'Inter_700Bold' },
+  errorBanner: { backgroundColor: '#fef2f2', borderRadius: 10, padding: 10, marginBottom: 12 },
+  errorText: { fontSize: 12, color: '#ef4444', textAlign: 'center', fontFamily: 'Inter_400Regular' },
+  fieldLabel: { fontSize: 12, fontWeight: '600', color: '#374151', marginBottom: 5, marginTop: 10, fontFamily: 'Inter_600SemiBold' },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, paddingHorizontal: 12, height: 46, marginBottom: 2 },
+  icon: { marginRight: 8 },
+  dialCode: { fontSize: 14, color: '#374151', fontFamily: 'Inter_500Medium', marginRight: 8 },
+  input: { flex: 1, fontSize: 14, color: '#111827', fontFamily: 'Inter_400Regular' },
+  twoCol: { flexDirection: 'row', marginBottom: 2 },
+  agreeRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 12, marginBottom: 16, gap: 8 },
+  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: '#9ca3af', marginTop: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  checkboxChecked: { backgroundColor: '#1e40af', borderColor: '#1e40af' },
+  agreeText: { flex: 1, fontSize: 11, color: '#6b7280', lineHeight: 16, fontFamily: 'Inter_400Regular' },
+  signupBtn: { backgroundColor: '#1e2d6e', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 14 },
   btnDisabled: { opacity: 0.7 },
-  signUpBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', fontFamily: 'Inter_700Bold' },
-
-  termsText: {
-    fontSize: 11,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 16,
-    fontFamily: 'Inter_400Regular',
-  },
-  termsLink: { color: '#818cf8', fontFamily: 'Inter_500Medium' },
-
-  footer: { flexDirection: 'row', justifyContent: 'center' },
-  footerText: { fontSize: 14, color: '#64748b', fontFamily: 'Inter_400Regular' },
-  footerLink: { fontSize: 14, color: '#818cf8', fontFamily: 'Inter_600SemiBold' },
+  signupBtnText: { color: '#fff', fontSize: 15, fontWeight: '700', fontFamily: 'Inter_700Bold' },
+  loginRow: { flexDirection: 'row', justifyContent: 'center' },
+  loginPrompt: { fontSize: 13, color: '#6b7280', fontFamily: 'Inter_400Regular' },
+  loginLink: { fontSize: 13, fontWeight: '700', color: '#1e40af', fontFamily: 'Inter_700Bold' },
 });

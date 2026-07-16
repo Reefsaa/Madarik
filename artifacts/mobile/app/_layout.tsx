@@ -5,6 +5,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthProvider } from '@/context/AuthContext';
+import { AppModeProvider } from '@/context/AppModeContext';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -31,6 +32,7 @@ function RootLayoutNav() {
       <Stack.Screen name="ai-recommendations" />
       <Stack.Screen name="ai-report" />
       <Stack.Screen name="ai-alerts" />
+      <Stack.Screen name="behavioral-assessment" />
     </Stack>
   );
 }
@@ -44,9 +46,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded || fontError) SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) return null;
@@ -58,7 +58,9 @@ export default function RootLayout() {
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
               <AuthProvider>
-                <RootLayoutNav />
+                <AppModeProvider>
+                  <RootLayoutNav />
+                </AppModeProvider>
               </AuthProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>

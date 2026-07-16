@@ -1,41 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { BlurView } from 'expo-blur';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Tabs } from 'expo-router';
-import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
-import { SymbolView } from 'expo-symbols';
 import { Platform, StyleSheet, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
 
-function NativeTabLayout() {
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: 'house', selected: 'house.fill' }} />
-        <Label>Home</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="accounts">
-        <Icon sf={{ default: 'briefcase', selected: 'briefcase.fill' }} />
-        <Label>Accounts</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="ai">
-        <Icon sf={{ default: 'sparkles', selected: 'sparkles' }} />
-        <Label>Modrik</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="analytics">
-        <Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} />
-        <Label>Analytics</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="settings">
-        <Icon sf={{ default: 'person', selected: 'person.fill' }} />
-        <Label>Profile</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
-  );
-}
-
-function ClassicTabLayout() {
+export default function TabLayout() {
   const colors = useColors();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -47,7 +18,7 @@ function ClassicTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: '#4f46e5',
         tabBarInactiveTintColor: colors.mutedForeground,
         tabBarStyle: {
           position: 'absolute',
@@ -75,68 +46,41 @@ function ClassicTabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="house.fill" tintColor={color} size={24} />
-            ) : (
-              <Ionicons name="grid-outline" size={22} color={color} />
-            ),
+            isIOS
+              ? <SymbolView name="house.fill" tintColor={color} size={24} />
+              : <Ionicons name="home-outline" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="accounts"
+        name="insights"
         options={{
-          title: 'Accounts',
+          title: 'Insights',
           tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="briefcase.fill" tintColor={color} size={24} />
-            ) : (
-              <Ionicons name="briefcase-outline" size={22} color={color} />
-            ),
+            isIOS
+              ? <SymbolView name="chart.line.uptrend.xyaxis" tintColor={color} size={24} />
+              : <Ionicons name="trending-up-outline" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="ai"
         options={{
-          title: 'Modrik',
+          title: 'Ask Modrik',
           tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="sparkles" tintColor={color} size={24} />
-            ) : (
-              <Ionicons name="sparkles-outline" size={22} color={color} />
-            ),
-        }}
-      />
-      <Tabs.Screen
-        name="analytics"
-        options={{
-          title: 'Analytics',
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="chart.bar.fill" tintColor={color} size={24} />
-            ) : (
-              <Ionicons name="stats-chart-outline" size={22} color={color} />
-            ),
+            isIOS
+              ? <SymbolView name="sparkles" tintColor={color} size={24} />
+              : <Ionicons name="sparkles-outline" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Profile',
+          title: 'Settings',
           tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="person.fill" tintColor={color} size={24} />
-            ) : (
-              <Ionicons name="person-outline" size={22} color={color} />
-            ),
+            isIOS
+              ? <SymbolView name="gearshape.fill" tintColor={color} size={24} />
+              : <Ionicons name="settings-outline" size={22} color={color} />,
         }}
       />
     </Tabs>
   );
-}
-
-export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
-  }
-  return <ClassicTabLayout />;
 }
