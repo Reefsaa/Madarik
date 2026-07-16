@@ -1,0 +1,54 @@
+Please refactor the existing "Madarik" application to implement a new user onboarding flow and completely update the branding using the provided logo asset (38cf2928-f735-434a-85b0-a801662b28ab.png).
+
+Here is the precise user flow and requirements for this update:
+
+---
+
+### Phase 1: New Onboarding & Post-Registration Flow
+
+We need to make the dual-mode selection (Business vs. Personal) the primary gateway of the application, **before** users can even register[cite: 1, 2].
+
+#### Step 1: The Initial Gateway Page (Mode Selection)
+1. When a user first opens the application (or hits the root `/` URL), they **must not** see a dashboard.
+2. The **first** page visible must be a dedicated mode-selection page titled "Welcome to Madarik: Choose Your Path"[cite: 1, 2].
+3. This page should feature the new logo (referenced below) and two distinct, premium-designed clickable card options:
+   a. **"Madarik for Business"** (For managing company cash flow, business banking, revenues, and expenses)[cite: 1, 2].
+   b. **"Madarik Personal"** (For smart investing, behavioral AI scoring, and personal cards management)[cite: 1, 2].
+4. The user's selection must be saved to the application state/context[cite: 2].
+
+#### Step 2: Mode-Based Authentication & Features
+After the user clicks their preferred mode, redirect them to the respective mode's features, where they will then be asked to log in or sign up:
+
+1. **If "Madarik for Business" is selected:**
+   a. Redirect to the Business-specific Login/Sign Up pages (e.g., `/business/auth`)[cite: 1, 2].
+   b. **After successful auth:** Load the "Business Banking" dashboard and features (e.g., `/business/dashboard`)[cite: 2].
+   c. **Business Features:** Ensure the dashboard is populated with business balance, cash flow charts, revenues, and expenses (as in image_4.png)[cite: 2].
+
+2. **If "Madarik Personal" is selected:**
+   a. Redirect to the Personal-specific Login/Sign Up pages (e.g., `/personal/auth`)[cite: 2].
+   b. **After successful auth:** Load the "Personal Smart Investment" dashboard and features (e.g., `/personal/dashboard`)[cite: 2].
+   c. **Personal Features:** Ensure the dashboard is populated with personal cards, Today's AI Insight (risk profile, behavioral score), recent activities (MadarikC, Zara), the Smart Insights tab, and the Ask Modrik AI analyst chat (as in image_1.png, image_2.png, image_3.png, image_5.png, image_6.png)[cite: 2].
+
+#### Step 3: Accessing Other Mode Later
+Ensure there is a setting or mode-switcher in the user profile menu to allow users to switch between their Business and Personal views[cite: 2].
+
+---
+
+### Phase 2: Branding Update (Logo and Icon)
+
+This is a critical requirement. We need to update all visual assets.
+
+#### 1. Logo Replacement
+I have uploaded the correct, official logo asset as: `38cf2928-f735-434a-85b0-a801662b28ab.png`. Please use this specific file verbatim to **replace** any old logos (including the older style shown in `visily-multiscreens (2).pdf`) throughout the entire application[cite: 1, 2].
+
+This logo must be implemented as the main brand logo on the following screens:
+- The Initial Gateway Page[cite: 1].
+- All Login and Sign Up screens[cite: 1, 2].
+- The main navigation header (top left) for both the Business and Personal dashboards[cite: 2].
+
+#### 2. External Application Icon (Favicon & PWA App Icon)
+Please generate and update the external application icon (favicon) and the PWA (Progressive Web App) app icons to use the distinct crescent-orbit design from the bottom of the new logo asset (38cf2928-f735-434a-85b0-a801662b28ab.png).
+
+---
+
+Please refactor the routes, authentication context, and UI components to support this new unified architecture, prioritizing the correct display of the logo and the mode-selection gateway.

@@ -9,13 +9,14 @@ export default function Index() {
 
   if (authLoading || modeLoading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0a0e27' }}>
         <ActivityIndicator color="#4f46e5" size="large" />
       </View>
     );
   }
 
-  if (!user) return <Redirect href="/(auth)/" />;
+  // Mode selection is the PRIMARY gateway — must happen before auth
   if (!mode) return <Redirect href="/(auth)/mode-select" />;
+  if (!user) return <Redirect href="/(auth)/login" />;
   return <Redirect href="/(tabs)/" />;
 }

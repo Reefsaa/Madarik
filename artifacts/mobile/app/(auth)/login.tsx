@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -17,11 +18,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import { useAppMode } from '@/context/AppModeContext';
 import MadarikLogo from '@/components/MadarikLogo';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { login } = useAuth();
+  const { mode } = useAppMode();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -29,6 +32,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
+  const isPersonal = mode === 'personal';
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -39,7 +43,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(username.trim(), password);
-      router.replace('/(auth)/mode-select');
+      router.replace('/(tabs)/');
     } catch {
       setError('Invalid credentials. Please try again.');
     } finally {
@@ -53,13 +57,31 @@ export default function LoginScreen() {
         <View style={styles.container}>
           {/* Dark header with logo */}
           <LinearGradient
-            colors={['#0a0e27', '#1a1060', '#2d1b8e']}
-            style={[styles.logoSection, { paddingTop: topPad + 36 }]}
+            colors={['#04071a', '#0a0e27', '#130d3a', '#1a1060']}
+            style={[styles.logoSection, { paddingTop: topPad + 20 }]}
           >
+            {/* Back to mode select */}
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(auth)/mode-select')}>
+              <Ionicons name="chevron-back" size={18} color="rgba(255,255,255,0.5)" />
+            </TouchableOpacity>
             <View style={styles.globeRow}>
-              <Ionicons name="globe-outline" size={22} color="rgba(255,255,255,0.5)" />
+              <Ionicons name="globe-outline" size={22} color="rgba(255,255,255,0.4)" />
             </View>
-            <MadarikLogo size="medium" textColor="#c7d2fe" />
+
+            <MadarikLogo size="medium" />
+
+            {isPersonal && (
+              <View style={styles.modeBadge}>
+                <Ionicons name="person" size={11} color="#c084fc" />
+                <Text style={styles.modeBadgeText}>Personal Mode</Text>
+              </View>
+            )}
+            {!isPersonal && (
+              <View style={[styles.modeBadge, { borderColor: 'rgba(129,140,248,0.4)' }]}>
+                <Ionicons name="briefcase" size={11} color="#818cf8" />
+                <Text style={styles.modeBadgeText}>Business Mode</Text>
+              </View>
+            )}
           </LinearGradient>
 
           {/* White bottom sheet */}
@@ -108,7 +130,6 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {/* Remember me */}
               <TouchableOpacity style={styles.rememberRow} onPress={() => setRememberMe(!rememberMe)} activeOpacity={0.7}>
                 <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
                   {rememberMe && <Ionicons name="checkmark" size={11} color="#fff" />}
@@ -154,23 +175,19 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1060' },
+  container: { flex: 1, backgroundColor: '#0a0e27' },
 
-  logoSection: { alignItems: 'center', paddingBottom: 48, position: 'relative' },
-  globeRow: { position: 'absolute', top: 56, right: 20 },
+  logoSection: { alignItems: 'center', paddingBottom: 40, position: 'relative' },
+  backBtn: { position: 'absolute', top: 56, left: 16, width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  globeRow: { position: 'absolute', top: 56, right: 16 },
+  modeBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: 'rgba(192,132,252,0.4)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginTop: 10 },
+  modeBadgeText: { fontSize: 11, color: '#c084fc', fontFamily: 'Inter_500Medium' },
 
   sheet: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    marginTop: -16,
+    flex: 1, backgroundColor: '#fff',
+    borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -16,
   },
-  sheetHandle: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: '#d1d5db',
-    alignSelf: 'center', marginTop: 12, marginBottom: 4,
-  },
+  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#d1d5db', alignSelf: 'center', marginTop: 12, marginBottom: 4 },
   formContent: { paddingHorizontal: 28, paddingBottom: 40 },
 
   title: { fontSize: 22, fontWeight: '700', color: '#111827', textAlign: 'center', marginTop: 8, marginBottom: 24, fontFamily: 'Inter_700Bold' },
@@ -179,26 +196,16 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 13, color: '#ef4444', textAlign: 'center', fontFamily: 'Inter_400Regular' },
 
   inputGroup: { gap: 12, marginBottom: 14 },
-  inputWrap: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderColor: '#e5e7eb',
-    borderRadius: 10, paddingHorizontal: 14, height: 50,
-  },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, paddingHorizontal: 14, height: 50 },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, fontSize: 15, color: '#111827', fontFamily: 'Inter_400Regular' },
 
   rememberRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  checkbox: {
-    width: 18, height: 18, borderRadius: 4, borderWidth: 1.5,
-    borderColor: '#9ca3af', marginRight: 8, alignItems: 'center', justifyContent: 'center',
-  },
+  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: '#9ca3af', marginRight: 8, alignItems: 'center', justifyContent: 'center' },
   checkboxChecked: { backgroundColor: '#1e40af', borderColor: '#1e40af' },
   rememberText: { fontSize: 13, color: '#6b7280', fontFamily: 'Inter_400Regular' },
 
-  loginBtn: {
-    backgroundColor: '#1e2d6e', borderRadius: 12,
-    paddingVertical: 15, alignItems: 'center', marginBottom: 16,
-  },
+  loginBtn: { backgroundColor: '#1e2d6e', borderRadius: 12, paddingVertical: 15, alignItems: 'center', marginBottom: 16 },
   btnDisabled: { opacity: 0.7 },
   loginBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', fontFamily: 'Inter_700Bold' },
 

@@ -14,12 +14,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import { useAppMode } from '@/context/AppModeContext';
 import MadarikLogo from '@/components/MadarikLogo';
 
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const { signup } = useAuth();
+  const { mode } = useAppMode();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
+  const isPersonal = mode === 'personal';
 
   const [form, setForm] = useState({
     nationalId: '', mobile: '', email: '',
@@ -44,7 +47,7 @@ export default function SignupScreen() {
     try {
       const name = `${firstName.trim()} ${lastName.trim()}`;
       await signup(name, email.trim(), password, username.trim());
-      router.replace('/(auth)/mode-select');
+      router.replace('/(tabs)/');
     } catch {
       setError('Account creation failed. Please try again.');
     } finally {
@@ -55,13 +58,20 @@ export default function SignupScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0a0e27', '#1a1060', '#2d1b8e']}
-        style={[styles.logoSection, { paddingTop: topPad + 24 }]}
+        colors={['#04071a', '#0a0e27', '#130d3a', '#1a1060']}
+        style={[styles.logoSection, { paddingTop: topPad + 16 }]}
       >
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(auth)/mode-select')}>
+          <Ionicons name="chevron-back" size={18} color="rgba(255,255,255,0.5)" />
+        </TouchableOpacity>
         <View style={styles.globeRow}>
-          <Ionicons name="globe-outline" size={22} color="rgba(255,255,255,0.5)" />
+          <Ionicons name="globe-outline" size={22} color="rgba(255,255,255,0.4)" />
         </View>
-        <MadarikLogo size="medium" textColor="#c7d2fe" />
+        <MadarikLogo size="medium" />
+        <View style={[styles.modeBadge, isPersonal && styles.modeBadgePersonal]}>
+          <Ionicons name={isPersonal ? 'person' : 'briefcase'} size={11} color={isPersonal ? '#c084fc' : '#818cf8'} />
+          <Text style={[styles.modeBadgeText, isPersonal && { color: '#c084fc' }]}>{isPersonal ? 'Personal Mode' : 'Business Mode'}</Text>
+        </View>
       </LinearGradient>
 
       <View style={styles.sheet}>
@@ -153,9 +163,13 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1060' },
-  logoSection: { alignItems: 'center', paddingBottom: 40, position: 'relative' },
-  globeRow: { position: 'absolute', top: 44, right: 20 },
+  container: { flex: 1, backgroundColor: '#0a0e27' },
+  logoSection: { alignItems: 'center', paddingBottom: 32, position: 'relative' },
+  backBtn: { position: 'absolute', top: 44, left: 16, width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  globeRow: { position: 'absolute', top: 44, right: 16 },
+  modeBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: 'rgba(129,140,248,0.4)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginTop: 8 },
+  modeBadgePersonal: { borderColor: 'rgba(192,132,252,0.4)' },
+  modeBadgeText: { fontSize: 11, color: '#818cf8', fontFamily: 'Inter_500Medium' },
   sheet: { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -12 },
   sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#d1d5db', alignSelf: 'center', marginTop: 12, marginBottom: 2 },
   formContent: { paddingHorizontal: 24, paddingBottom: 40 },
