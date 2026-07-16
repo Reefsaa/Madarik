@@ -207,7 +207,7 @@ export default function AIScreen() {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
-    // Capture history (newest-first in state → reverse for API)
+    // Capture history before state update (messages stored newest-first → reverse for API)
     const historyForApi = [...messages]
       .reverse()
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.text }));
@@ -220,37 +220,32 @@ export default function AIScreen() {
 
     const aiMsgId = `ai-${Date.now()}`;
 
-    // Determine API URL (works on web via Replit path routing; native falls back to local)
+    // API URL — relative path works on web via Replit's path-based routing
     const apiUrl =
       Platform.OS === 'web' && typeof window !== 'undefined'
         ? `${window.location.origin}/api/chat`
         : null;
 
-    if (apiUrl) {
-      try {
+    try {
+      if (apiUrl) {
         const resp = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: historyForApi, mode: mode ?? 'personal' }),
         });
 
-        if (!resp.ok || !resp.body) {
-          throw new Error(`HTTP ${resp.status}`);
-        }
+        if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
 
-        // Insert empty streaming bubble, dismiss typing indicator
+        // Show streaming bubble, hide typing indicator
         setLoading(false);
-        setMessages(prev => [
-          { id: aiMsgId, role: 'assistant', text: '', time: nowTime() },
-          ...prev,
-        ]);
+        setMessages(prev => [{ id: aiMsgId, role: 'assistant', text: '', time: nowTime() }, ...prev]);
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         let fullText = '';
 
-        while (true) {
+        outer: while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
@@ -260,47 +255,43 @@ export default function AIScreen() {
             if (!line.startsWith('data: ')) continue;
             try {
               const data = JSON.parse(line.slice(6));
-              if (data.done) break;
+              if (data.done) break outer;
               if (data.error) throw new Error(data.error);
               if (data.content) {
                 fullText += data.content;
-                setMessages(prev =>
-                  prev.map(m => m.id === aiMsgId ? { ...m, text: fullText } : m)
-                );
+                setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: fullText } : m));
               }
-            } catch { /* skip malformed SSE lines */ }
+            } catch (parseErr: unknown) {
+              // Only re-throw actual API errors, skip malformed SSE lines
+              if (parseErr instanceof Error && parseErr.message !== 'SyntaxError') throw parseErr;
+            }
           }
         }
 
-        // If stream ended with no content, fall through to local fallback
-        if (!fullText) throw new Error('Empty stream');
-        return;
-      } catch {
-        // Fall through to local fallback below
-        setLoading(false);
+        if (fullText) return; // Success — loading already set to false above
+        throw new Error('Empty stream'); // Fall through to local
       }
-    }
 
-    // ── Local fallback (no API URL, API unavailable, or empty stream) ─────────
-    const delay = 800 + Math.random() * 600;
-    if (loading) {
-      await new Promise(r => setTimeout(r, delay));
+      // ── No API URL (native) or API returned empty ── use local engine ────
+      await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
+      const response = getLocalResponse(trimmed, mode ?? 'personal', firstName);
+      setMessages(prev => {
+        const existing = prev.find(m => m.id === aiMsgId);
+        const updated: Message = { id: aiMsgId, role: 'assistant', text: response.text, time: nowTime(), miniCard: response.miniCard };
+        return existing ? prev.map(m => m.id === aiMsgId ? updated : m) : [updated, ...prev];
+      });
+    } catch {
+      // API unavailable or error — fall back to local engine
+      const response = getLocalResponse(trimmed, mode ?? 'personal', firstName);
+      setMessages(prev => {
+        const existing = prev.find(m => m.id === aiMsgId);
+        const updated: Message = { id: aiMsgId, role: 'assistant', text: response.text, time: nowTime(), miniCard: response.miniCard };
+        return existing ? prev.map(m => m.id === aiMsgId ? updated : m) : [updated, ...prev];
+      });
+    } finally {
+      // Always reset loading — this is the only place it needs to be cleared
       setLoading(false);
     }
-    const response = getLocalResponse(trimmed, mode ?? 'business', firstName);
-    setMessages(prev => {
-      const existing = prev.find(m => m.id === aiMsgId);
-      const updated: Message = {
-        id: aiMsgId,
-        role: 'assistant',
-        text: response.text,
-        time: nowTime(),
-        miniCard: response.miniCard,
-      };
-      return existing
-        ? prev.map(m => m.id === aiMsgId ? updated : m)
-        : [updated, ...prev];
-    });
   };
 
   const renderItem = ({ item }: { item: Message }) => {

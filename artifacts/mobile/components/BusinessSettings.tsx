@@ -102,7 +102,12 @@ export default function BusinessSettings() {
             <View style={styles.sectionCard}>
               {section.items.map((item, idx) => (
                 <View key={item.label}>
-                  <SettingRow icon={item.icon} label={item.label} value={'value' in item ? item.value : undefined} />
+                  <SettingRow
+                    icon={item.icon}
+                    label={item.label}
+                    value={'value' in item ? item.value : undefined}
+                    onPress={item.label === 'Notifications' ? () => router.push('/notifications') : undefined}
+                  />
                   {idx < section.items.length - 1 && <View style={styles.divider} />}
                 </View>
               ))}

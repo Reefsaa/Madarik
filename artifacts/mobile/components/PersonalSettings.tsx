@@ -51,7 +51,7 @@ export default function PersonalSettings() {
       <LinearGradient colors={['#0a0e27', '#1a1060', '#2d1b8e']} style={[styles.header, { paddingTop: topPad + 12 }]}>
         <View style={styles.notifRow}>
           <View style={{ flex: 1 }} />
-          <TouchableOpacity style={styles.notifBtn}>
+          <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
             <Ionicons name="notifications-outline" size={20} color="#c7d2fe" />
           </TouchableOpacity>
         </View>
