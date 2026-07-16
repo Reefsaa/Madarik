@@ -1,0 +1,71 @@
+Please carefully read and execute the following system-wide refactoring instructions for the "Madarik" application. Use the provided images as visual references to ensure perfect compliance.
+
+---
+
+### Part 1: Core Definitions - Madarik Business vs. Madarik Personal
+You must strictly separate the data models, state, and UI features between the two modes. Do not mix or leak components between them.
+
+1. **Madarik Business (مدارك أعمال):**
+   * **Target Audience:** Companies, small businesses, and startups.
+   * **Core Focus:** Cash flow forecasting, corporate business balance tracking, managing revenues and expenses, tracking upcoming business payments (Payroll, Supplier Invoices, VAT, HQ Rent), and analyzing company financial health scores (e.g., 89/100 Business Health Score).
+   * **Exclusive Screens/Components:** Business Analytics, Cash Flow charts, Loan Review/Financing Offer, Business Accounts dashboard, Business Health Score cards, and AI Financial Report (PDF generation).
+
+2. **Madarik Personal (مدارك أفراد):**
+   * **Target Audience:** Individual users and retail investors.
+   * **Core Focus:** Personal smart investing, savings goals, tracking personal credit cards, behavioral scoring, and psychology-based risk profiles.
+   * **Exclusive Screens/Components:** Personal Cards, Behavioral Assessment survey, AI Behavior Score (Monthly Assessment with Stability/Discipline metrics), Emotion Detection panel, Spending Analysis, Portfolio Growth, and Risk Profile questionnaire.
+
+---
+
+### Part 2: Dynamic & Specific Authentication Fields (UI Layout Intact)
+Keep the exact existing premium visual design (UI) of the Log In / Sign Up screens, but dynamically change the requested inputs based on the chosen mode:
+
+1. **For Madarik Business:**
+   * **Sign Up Requirements:**
+     - Commercial Registration Number (CR) / رقم السجل التجاري (replaces National ID/Iqama field).
+     - Business Email.
+     - Company Name.
+     - Authorized Representative Name.
+     - Mobile Number.
+     - Password.
+   * **Log In Requirements:** Business Username/CR and Password.
+
+2. **For Madarik Personal:**
+   * **Sign Up Requirements (Keep as current):**
+     - National ID / Iqama number (رقم الهوية الوطنية / الإقامة).
+     - Mobile Number.
+     - Personal Email.
+     - First Name & Last Name.
+     - Username & Password.
+   * **Log In Requirements:** Username or ID and Password.
+
+---
+
+### Part 3: Clean Feature Separation & Tab Bar Clean-up
+Look at the attached mobile screenshot (`5965040654922485555.jpg`) where "accounts" and "analytics" tabs are leaking into the Personal mode's bottom navigation bar:
+
+1. **Clean Personal Navigation:** 
+   - Completely remove the redundant dropdown icons/tabs labeled "accounts" and "analytics" from the Personal mode's bottom navigation bar.
+   - The Personal bottom navigation must strictly display only: **[Home, Insights, Ask Modrik, Settings]**.
+   - Ensure "Behavioral Assessment", "Ask Modrik", "Smart Insights", and "AI Report" are styled cleanly as interactive quick-access cards on the Personal home page.
+2. **Clean Business Navigation:**
+   - The Business bottom navigation must strictly display: **[Dashboard, Cash Flow, AI Assistant, Analytics, Profile]**.
+
+---
+
+### Part 4: Restore Original Chatbot Functionality (Disconnect Claude API)
+We need to revert the AI chatbot to its previous state and disable the external Claude API integration.
+1. **Remove Claude API Integration:** Disable or remove the integration code communicating with the external Claude API (`ANTHROPIC_API_KEY`).
+2. **Restore Chat State & Local Interaction:** Make the Chatbot (`Ask Modrik` / `Modrik AI`) fully interactive again. Ensure the input text area allows typing, the send button triggers state updates, and it responds using the previous local engine or mocked database analysis (which dynamically references the user's mock financial data/insights as it did before). Ensure the chat UI acts as a smooth, functional conversation simulation.
+
+---
+
+### Part 5: Support Button Redirection
+In both the Business Settings and Personal Settings screens:
+- Locate the **Support (الدعم)** button.
+- Bind its click handler to trigger a native mail client action (`mailto:`), prefilled to send an email to our official address: **madarik.amad@gmail.com**[cite: 2].
+- Example action: `window.location.href = "mailto:madarik.amad@gmail.com?subject=Madarik Support Request";`[cite: 2].
+
+---
+
+Please systematically review the routes, layouts, and forms to ensure these strict separations and features are perfectly implemented without breaking our elegant UI style.

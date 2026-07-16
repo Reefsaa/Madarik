@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
+
+const SUPPORT_EMAIL = 'madarik.amad@gmail.com';
 
 interface RowProps { icon: keyof typeof Ionicons.glyphMap; label: string; value?: string; danger?: boolean; onPress?: () => void }
 
@@ -62,6 +64,10 @@ export default function BusinessSettings() {
     router.replace('/(auth)/');
   };
 
+  const handleSupport = () => {
+    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Madarik Business Support Request`).catch(() => {});
+  };
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
       <LinearGradient colors={['#0f172a', '#1e1b4b', '#312e81']} style={[styles.header, { paddingTop: topPad + 12 }]}>
@@ -104,22 +110,33 @@ export default function BusinessSettings() {
           </View>
         ))}
 
-        {/* Switch to Personal */}
+        {/* Support */}
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Help</Text>
           <View style={styles.sectionCard}>
             <SettingRow
-              icon="person-outline"
-              label="Switch to Personal Mode"
-              onPress={() => setMode('personal')}
+              icon="headset-outline"
+              label="Support"
+              value={SUPPORT_EMAIL}
+              onPress={handleSupport}
             />
           </View>
         </View>
 
+        {/* Switch to Personal */}
+        <View style={styles.section}>
+          <View style={styles.sectionCard}>
+            <SettingRow icon="person-outline" label="Switch to Personal Mode" onPress={() => setMode('personal')} />
+          </View>
+        </View>
+
+        {/* Sign out */}
         <View style={styles.section}>
           <View style={styles.sectionCard}>
             <SettingRow icon="log-out-outline" label="Sign Out" danger onPress={handleLogout} />
           </View>
         </View>
+
         <Text style={styles.versionText}>Madarik v1.0.0 · Business Mode</Text>
       </View>
     </ScrollView>
@@ -151,7 +168,7 @@ const styles = StyleSheet.create({
   settingIconDanger: { backgroundColor: '#fef2f2' },
   settingLabel: { flex: 1, fontSize: 14, color: '#111827', fontFamily: 'Inter_500Medium' },
   settingLabelDanger: { color: '#ef4444' },
-  settingValue: { fontSize: 13, color: '#9ca3af', marginRight: 6, fontFamily: 'Inter_400Regular' },
+  settingValue: { fontSize: 11, color: '#9ca3af', marginRight: 6, fontFamily: 'Inter_400Regular' },
   divider: { height: 1, backgroundColor: '#f9fafb', marginLeft: 58 },
   versionText: { textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 8, fontFamily: 'Inter_400Regular' },
 });

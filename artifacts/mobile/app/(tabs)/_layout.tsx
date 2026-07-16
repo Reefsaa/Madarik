@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
+import { useAppMode } from '@/context/AppModeContext';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SymbolView } from 'expo-symbols';
 
 export default function TabLayout() {
   const colors = useColors();
@@ -13,6 +13,8 @@ export default function TabLayout() {
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
   const safeAreaInsets = useSafeAreaInsets();
+  const { mode } = useAppMode();
+  const isBusiness = mode === 'business';
 
   return (
     <Tabs
@@ -31,56 +33,74 @@ export default function TabLayout() {
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
+            <BlurView intensity={100} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
           ) : null,
       }}
     >
+      {/* ── Home / Dashboard ── */}
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) =>
-            isIOS
-              ? <SymbolView name="house.fill" tintColor={color} size={24} />
-              : <Ionicons name="home-outline" size={22} color={color} />,
+          title: isBusiness ? 'Dashboard' : 'Home',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name={isBusiness ? 'grid-outline' : 'home-outline'} size={22} color={color} />
+          ),
         }}
       />
+
+      {/* ── Cash Flow (Business only) ── */}
       <Tabs.Screen
-        name="insights"
+        name="cashflow"
         options={{
-          title: 'Insights',
-          tabBarIcon: ({ color }) =>
-            isIOS
-              ? <SymbolView name="chart.line.uptrend.xyaxis" tintColor={color} size={24} />
-              : <Ionicons name="trending-up-outline" size={22} color={color} />,
+          title: 'Cash Flow',
+          href: isBusiness ? undefined : null,
+          tabBarIcon: ({ color }) => <Ionicons name="water-outline" size={22} color={color} />,
         }}
       />
+
+      {/* ── AI Assistant / Ask Modrik ── */}
       <Tabs.Screen
         name="ai"
         options={{
-          title: 'Ask Modrik',
-          tabBarIcon: ({ color }) =>
-            isIOS
-              ? <SymbolView name="sparkles" tintColor={color} size={24} />
-              : <Ionicons name="sparkles-outline" size={22} color={color} />,
+          title: isBusiness ? 'AI Assistant' : 'Ask Modrik',
+          tabBarIcon: ({ color }) => <Ionicons name="sparkles-outline" size={22} color={color} />,
+        }}
+      />
+
+      {/* ── Analytics / Insights ── */}
+      <Tabs.Screen
+        name="insights"
+        options={{
+          title: isBusiness ? 'Analytics' : 'Insights',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name={isBusiness ? 'bar-chart-outline' : 'trending-up-outline'} size={22} color={color} />
+          ),
+        }}
+      />
+
+      {/* ── Profile (Business) / Settings (Personal) ── */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          href: isBusiness ? undefined : null,
+          tabBarIcon: ({ color }) => <Ionicons name="person-circle-outline" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color }) =>
-            isIOS
-              ? <SymbolView name="gearshape.fill" tintColor={color} size={24} />
-              : <Ionicons name="settings-outline" size={22} color={color} />,
+          href: isBusiness ? null : undefined,
+          tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} />,
         }}
       />
+
+      {/* ── Hidden dead screens ── */}
+      <Tabs.Screen name="accounts"  options={{ href: null }} />
+      <Tabs.Screen name="analytics" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
+
+const SUPPORT_EMAIL = 'madarik.amad@gmail.com';
 
 interface RowProps { icon: keyof typeof Ionicons.glyphMap; label: string; sub?: string; onPress?: () => void }
 
@@ -39,9 +41,13 @@ export default function PersonalSettings() {
     router.replace('/(auth)/');
   };
 
+  const handleSupport = () => {
+    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Madarik Support Request`).catch(() => {});
+  };
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
-      {/* Header with profile */}
+      {/* Header */}
       <LinearGradient colors={['#0a0e27', '#1a1060', '#2d1b8e']} style={[styles.header, { paddingTop: topPad + 12 }]}>
         <View style={styles.notifRow}>
           <View style={{ flex: 1 }} />
@@ -49,14 +55,11 @@ export default function PersonalSettings() {
             <Ionicons name="notifications-outline" size={20} color="#c7d2fe" />
           </TouchableOpacity>
         </View>
-
-        {/* Avatar */}
         <View style={styles.avatarWrap}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
         </View>
-
         <Text style={styles.profileName}>{firstName} {lastName}</Text>
         <TouchableOpacity style={styles.usernameRow}>
           <Text style={styles.usernameText}>{username}</Text>
@@ -68,17 +71,22 @@ export default function PersonalSettings() {
       <View style={styles.listSection}>
         <SettingRow icon="person-outline" label="Personal Information" />
         <View style={styles.divider} />
-        <SettingRow icon="card-outline" label="Cards management" />
+        <SettingRow icon="card-outline" label="Cards Management" />
         <View style={styles.divider} />
         <SettingRow icon="shield-outline" label="Privacy & Security" />
         <View style={styles.divider} />
-        <SettingRow icon="headset-outline" label="Support" />
+        <SettingRow
+          icon="headset-outline"
+          label="Support"
+          sub={SUPPORT_EMAIL}
+          onPress={handleSupport}
+        />
       </View>
 
       {/* Referral code */}
       <TouchableOpacity style={styles.referralCard} activeOpacity={0.85}>
         <Ionicons name="qr-code-outline" size={20} color="#1e40af" />
-        <Text style={styles.referralText}>Referral code</Text>
+        <Text style={styles.referralText}>Referral Code</Text>
       </TouchableOpacity>
 
       {/* Switch to Business */}
@@ -116,25 +124,19 @@ const styles = StyleSheet.create({
   profileName: { fontSize: 20, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 4 },
   usernameRow: { flexDirection: 'row', alignItems: 'center' },
   usernameText: { fontSize: 13, color: '#818cf8', fontFamily: 'Inter_400Regular' },
-
   listSection: { backgroundColor: '#fff', borderRadius: 16, marginHorizontal: 16, marginTop: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
   rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   rowLabel: { fontSize: 14, color: '#111827', fontFamily: 'Inter_500Medium' },
   rowSub: { fontSize: 11, color: '#9ca3af', marginTop: 1, fontFamily: 'Inter_400Regular' },
   divider: { height: 1, backgroundColor: '#f9fafb', marginLeft: 64 },
-
   referralCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#eff6ff', borderRadius: 14, marginHorizontal: 16, marginTop: 12, paddingVertical: 14, borderWidth: 1, borderColor: '#bfdbfe' },
   referralText: { fontSize: 14, fontWeight: '600', color: '#1e40af', fontFamily: 'Inter_600SemiBold' },
-
   switchCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#e0e7ff' },
   switchText: { flex: 1, fontSize: 14, color: '#4f46e5', fontFamily: 'Inter_600SemiBold' },
-
   assessCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 10, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#ede9fe' },
   assessText: { flex: 1, fontSize: 14, color: '#7c3aed', fontFamily: 'Inter_600SemiBold' },
-
   logoutCard: { backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 10, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#f3f4f6' },
   logoutText: { fontSize: 14, color: '#6b7280', fontFamily: 'Inter_500Medium' },
-
   versionText: { textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 16, fontFamily: 'Inter_400Regular' },
 });

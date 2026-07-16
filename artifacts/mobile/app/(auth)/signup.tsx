@@ -18,68 +18,91 @@ import { useAppMode } from '@/context/AppModeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import MadarikLogo from '@/components/MadarikLogo';
 
+// ─── Personal form fields ─────────────────────────────────────────────────────
+interface PersonalForm {
+  nationalId: string; mobile: string; email: string;
+  firstName: string; lastName: string; username: string; password: string;
+}
+
+// ─── Business form fields ─────────────────────────────────────────────────────
+interface BusinessForm {
+  crNumber: string; businessEmail: string; companyName: string;
+  repName: string; mobile: string; password: string;
+}
+
+function InputRow({ label, placeholder, value, onChange, keyType, secure, showToggle, onEye, isRTL }: {
+  label: string; placeholder: string; value: string;
+  onChange: (v: string) => void; keyType?: any;
+  secure?: boolean; showToggle?: boolean; onEye?: () => void; isRTL?: boolean;
+}) {
+  return (
+    <View style={{ marginBottom: 2 }}>
+      <Text style={[styles.fieldLabel, isRTL && { textAlign: 'right' }]}>{label}</Text>
+      <View style={[styles.inputWrap, isRTL && { flexDirection: 'row-reverse' }]}>
+        <TextInput
+          style={[styles.input, isRTL && { textAlign: 'right' }]}
+          value={value}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor="#9ca3af"
+          keyboardType={keyType || 'default'}
+          secureTextEntry={secure}
+          autoCapitalize="none"
+        />
+        {showToggle && (
+          <TouchableOpacity onPress={onEye}>
+            <Ionicons name={secure ? 'eye-outline' : 'eye-off-outline'} size={16} color="#9ca3af" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+}
+
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const { signup } = useAuth();
   const { mode } = useAppMode();
   const { t, toggleLanguage, language, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const isPersonal = mode === 'personal';
+  const isBusiness = mode === 'business';
   const dir = isRTL ? 'rtl' : 'ltr';
-  const textAlign = isRTL ? 'right' : 'left';
 
-  const [form, setForm] = useState({ nationalId: '', mobile: '', email: '', firstName: '', lastName: '', username: '', password: '' });
+  const [personal, setPersonal] = useState<PersonalForm>({ nationalId: '', mobile: '', email: '', firstName: '', lastName: '', username: '', password: '' });
+  const [business, setBusiness] = useState<BusinessForm>({ crNumber: '', businessEmail: '', companyName: '', repName: '', mobile: '', password: '' });
   const [agreed, setAgreed] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const set = (k: keyof typeof form) => (v: string) => setForm(p => ({ ...p, [k]: v }));
+  const setP = (k: keyof PersonalForm) => (v: string) => setPersonal(p => ({ ...p, [k]: v }));
+  const setB = (k: keyof BusinessForm) => (v: string) => setBusiness(b => ({ ...b, [k]: v }));
 
   const handleSignup = async () => {
-    const { firstName, lastName, email, password, username } = form;
-    if (!firstName || !lastName || !email || !password || !username) {
-      setError(isRTL ? 'يرجى ملء جميع الحقول المطلوبة' : 'Please fill in all required fields');
-      return;
-    }
-    if (!agreed) { setError(isRTL ? 'يرجى الموافقة على الشروط والأحكام' : 'Please agree to the Terms and Conditions'); return; }
+    if (!agreed) { setError('Please agree to the Terms and Conditions'); return; }
     setError('');
     setLoading(true);
     try {
-      await signup(`${firstName.trim()} ${lastName.trim()}`, email.trim(), password, username.trim());
+      if (isBusiness) {
+        const { crNumber, businessEmail, companyName, repName, password } = business;
+        if (!crNumber || !businessEmail || !companyName || !repName || !password) {
+          setError('Please fill in all required fields'); setLoading(false); return;
+        }
+        await signup(repName.trim(), businessEmail.trim(), password, companyName.trim());
+      } else {
+        const { firstName, lastName, email, password, username } = personal;
+        if (!firstName || !lastName || !email || !password || !username) {
+          setError('Please fill in all required fields'); setLoading(false); return;
+        }
+        await signup(`${firstName.trim()} ${lastName.trim()}`, email.trim(), password, username.trim());
+      }
       router.replace('/(tabs)/');
     } catch {
-      setError(isRTL ? 'فشل إنشاء الحساب. حاول مرة أخرى.' : 'Account creation failed. Please try again.');
+      setError('Account creation failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-
-  const Field = ({ label, ph, value, onCh, keyType, secure, onEye }: any) => (
-    <View style={{ marginBottom: 2 }}>
-      <Text style={[styles.fieldLabel, { writingDirection: dir, textAlign }]}>{label}</Text>
-      <View style={[styles.inputWrap, isRTL && { flexDirection: 'row-reverse' }]}>
-        {ph === '+966' ? (
-          <Text style={[styles.dialCode, isRTL && { marginLeft: 8, marginRight: 0 }]}>+966</Text>
-        ) : null}
-        <TextInput
-          style={[styles.input, { textAlign }]}
-          value={value}
-          onChangeText={onCh}
-          placeholder={ph !== '+966' ? ph : ''}
-          placeholderTextColor="#9ca3af"
-          keyboardType={keyType || 'default'}
-          secureTextEntry={secure === true}
-          autoCapitalize="none"
-        />
-        {onEye ? (
-          <TouchableOpacity onPress={onEye}>
-            <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={16} color="#9ca3af" />
-          </TouchableOpacity>
-        ) : null}
-      </View>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -87,15 +110,15 @@ export default function SignupScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(auth)/mode-select')}>
           <Ionicons name={isRTL ? 'chevron-forward' : 'chevron-back'} size={18} color="rgba(255,255,255,0.5)" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.langBtn} onPress={toggleLanguage} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.langBtn} onPress={toggleLanguage}>
           <Ionicons name="globe-outline" size={16} color="rgba(255,255,255,0.65)" />
           <Text style={styles.langLabel}>{language === 'en' ? 'عربي' : 'EN'}</Text>
         </TouchableOpacity>
         <MadarikLogo size="medium" />
-        <View style={[styles.modeBadge, isPersonal && styles.modeBadgePersonal]}>
-          <Ionicons name={isPersonal ? 'person' : 'briefcase'} size={11} color={isPersonal ? '#c084fc' : '#818cf8'} />
-          <Text style={[styles.modeBadgeText, isPersonal && { color: '#c084fc' }]}>
-            {isPersonal ? t('personalMode') : t('businessMode')}
+        <View style={[styles.modeBadge, isBusiness ? styles.modeBadgeBusiness : styles.modeBadgePersonal]}>
+          <Ionicons name={isBusiness ? 'briefcase' : 'person'} size={11} color={isBusiness ? '#818cf8' : '#c084fc'} />
+          <Text style={[styles.modeBadgeText, { color: isBusiness ? '#818cf8' : '#c084fc' }]}>
+            {isBusiness ? t('businessMode') : t('personalMode')}
           </Text>
         </View>
       </LinearGradient>
@@ -103,47 +126,73 @@ export default function SignupScreen() {
       <View style={styles.sheet}>
         <View style={styles.sheetHandle} />
         <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <Text style={[styles.title, { writingDirection: dir, textAlign: 'center' }]}>{t('signupTitle')}</Text>
+          <Text style={[styles.title, { writingDirection: dir }]}>
+            {isBusiness ? 'Business Registration' : t('signupTitle')}
+          </Text>
+
           {error ? <View style={styles.errorBanner}><Text style={styles.errorText}>{error}</Text></View> : null}
 
-          <Field label={t('signupNationalId')} ph={t('signupNationalIdPh')} value={form.nationalId} onCh={set('nationalId')} keyType="numeric" />
-          <Field label={t('signupMobile')} ph="+966" value={form.mobile} onCh={set('mobile')} keyType="phone-pad" />
-          <Field label={t('signupEmail')} ph={t('signupEmailPh')} value={form.email} onCh={set('email')} keyType="email-address" />
-
-          <View style={styles.twoCol}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.fieldLabel, { writingDirection: dir, textAlign }]}>{t('signupFirstName')}</Text>
-              <View style={[styles.inputWrap, { marginBottom: 0 }]}>
-                <TextInput style={[styles.input, { textAlign }]} value={form.firstName} onChangeText={set('firstName')} placeholder={t('signupFirstName')} placeholderTextColor="#9ca3af" />
+          {isBusiness ? (
+            /* ── Business fields ── */
+            <>
+              <InputRow isRTL={isRTL} label="Commercial Registration Number (CR)" placeholder="Enter CR number" value={business.crNumber} onChange={setB('crNumber')} keyType="numeric" />
+              <InputRow isRTL={isRTL} label="Business Email" placeholder="company@example.sa" value={business.businessEmail} onChange={setB('businessEmail')} keyType="email-address" />
+              <InputRow isRTL={isRTL} label="Company Name" placeholder="Enter company name" value={business.companyName} onChange={setB('companyName')} />
+              <InputRow isRTL={isRTL} label="Authorized Representative Name" placeholder="Full legal name" value={business.repName} onChange={setB('repName')} />
+              <Text style={[styles.fieldLabel, isRTL && { textAlign: 'right' }]}>Mobile Number</Text>
+              <View style={[styles.inputWrap, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.dialCode}>+966</Text>
+                <TextInput style={[styles.input, isRTL && { textAlign: 'right' }]} value={business.mobile} onChangeText={setB('mobile')} placeholder="" placeholderTextColor="#9ca3af" keyboardType="phone-pad" />
               </View>
-            </View>
-            <View style={{ width: 10 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.fieldLabel, { writingDirection: dir, textAlign }]}>{t('signupLastName')}</Text>
-              <View style={[styles.inputWrap, { marginBottom: 0 }]}>
-                <TextInput style={[styles.input, { textAlign }]} value={form.lastName} onChangeText={set('lastName')} placeholder={t('signupLastName')} placeholderTextColor="#9ca3af" />
+              <InputRow isRTL={isRTL} label="Password" placeholder="Create a strong password" value={business.password} onChange={setB('password')} secure={!showPass} showToggle onEye={() => setShowPass(!showPass)} />
+            </>
+          ) : (
+            /* ── Personal fields ── */
+            <>
+              <InputRow isRTL={isRTL} label={t('signupNationalId')} placeholder={t('signupNationalIdPh')} value={personal.nationalId} onChange={setP('nationalId')} keyType="numeric" />
+              <Text style={[styles.fieldLabel, isRTL && { textAlign: 'right' }]}>{t('signupMobile')}</Text>
+              <View style={[styles.inputWrap, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.dialCode}>+966</Text>
+                <TextInput style={[styles.input, isRTL && { textAlign: 'right' }]} value={personal.mobile} onChangeText={setP('mobile')} placeholder="" placeholderTextColor="#9ca3af" keyboardType="phone-pad" />
               </View>
-            </View>
-          </View>
-
-          <Field label={t('signupUsername')} ph={t('signupUsernamePh')} value={form.username} onCh={set('username')} />
-          <Field label={t('signupPassword')} ph={t('signupPasswordPh')} value={form.password} onCh={set('password')} secure={!showPass} onEye={() => setShowPass(!showPass)} />
+              <InputRow isRTL={isRTL} label={t('signupEmail')} placeholder={t('signupEmailPh')} value={personal.email} onChange={setP('email')} keyType="email-address" />
+              <View style={styles.twoCol}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.fieldLabel, isRTL && { textAlign: 'right' }]}>{t('signupFirstName')}</Text>
+                  <View style={[styles.inputWrap, { marginBottom: 0 }]}>
+                    <TextInput style={styles.input} value={personal.firstName} onChangeText={setP('firstName')} placeholder={t('signupFirstName')} placeholderTextColor="#9ca3af" />
+                  </View>
+                </View>
+                <View style={{ width: 10 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.fieldLabel, isRTL && { textAlign: 'right' }]}>{t('signupLastName')}</Text>
+                  <View style={[styles.inputWrap, { marginBottom: 0 }]}>
+                    <TextInput style={styles.input} value={personal.lastName} onChangeText={setP('lastName')} placeholder={t('signupLastName')} placeholderTextColor="#9ca3af" />
+                  </View>
+                </View>
+              </View>
+              <InputRow isRTL={isRTL} label={t('signupUsername')} placeholder={t('signupUsernamePh')} value={personal.username} onChange={setP('username')} />
+              <InputRow isRTL={isRTL} label={t('signupPassword')} placeholder={t('signupPasswordPh')} value={personal.password} onChange={setP('password')} secure={!showPass} showToggle onEye={() => setShowPass(!showPass)} />
+            </>
+          )}
 
           <TouchableOpacity style={[styles.agreeRow, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => setAgreed(!agreed)} activeOpacity={0.7}>
             <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
               {agreed && <Ionicons name="checkmark" size={11} color="#fff" />}
             </View>
-            <Text style={[styles.agreeText, { writingDirection: dir, textAlign }]}>{t('signupAgree')}</Text>
+            <Text style={[styles.agreeText, isRTL && { textAlign: 'right' }]}>{t('signupAgree')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.signupBtn, loading && styles.btnDisabled]} onPress={handleSignup} disabled={loading} activeOpacity={0.85}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.signupBtnText}>{t('signupBtn')}</Text>}
+            {loading ? <ActivityIndicator color="#fff" /> : (
+              <Text style={styles.signupBtnText}>{isBusiness ? 'Register Business' : t('signupBtn')}</Text>
+            )}
           </TouchableOpacity>
 
           <View style={[styles.loginRow, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Text style={[styles.loginPrompt, { writingDirection: dir }]}>{t('signupHaveAccount')}</Text>
+            <Text style={styles.loginPrompt}>{t('signupHaveAccount')}</Text>
             <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-              <Text style={[styles.loginLink, { writingDirection: dir }]}>{t('signupLogin')}</Text>
+              <Text style={styles.loginLink}>{t('signupLogin')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -158,13 +207,14 @@ const styles = StyleSheet.create({
   backBtn: { position: 'absolute', top: 44, left: 16, width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
   langBtn: { position: 'absolute', top: 44, right: 16, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
   langLabel: { fontSize: 11, color: 'rgba(255,255,255,0.75)', fontFamily: 'Inter_600SemiBold' },
-  modeBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: 'rgba(129,140,248,0.4)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginTop: 8 },
+  modeBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginTop: 8 },
+  modeBadgeBusiness: { borderColor: 'rgba(129,140,248,0.4)' },
   modeBadgePersonal: { borderColor: 'rgba(192,132,252,0.4)' },
-  modeBadgeText: { fontSize: 11, color: '#818cf8', fontFamily: 'Inter_500Medium' },
+  modeBadgeText: { fontSize: 11, fontFamily: 'Inter_500Medium' },
   sheet: { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -12 },
   sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#d1d5db', alignSelf: 'center', marginTop: 12, marginBottom: 2 },
   formContent: { paddingHorizontal: 22, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginTop: 6, marginBottom: 14, fontFamily: 'Inter_700Bold' },
+  title: { fontSize: 20, fontWeight: '700', color: '#111827', marginTop: 6, marginBottom: 14, fontFamily: 'Inter_700Bold', textAlign: 'center' },
   errorBanner: { backgroundColor: '#fef2f2', borderRadius: 10, padding: 10, marginBottom: 10 },
   errorText: { fontSize: 12, color: '#ef4444', textAlign: 'center', fontFamily: 'Inter_400Regular' },
   fieldLabel: { fontSize: 11, fontWeight: '600', color: '#374151', marginBottom: 4, marginTop: 10, fontFamily: 'Inter_600SemiBold' },

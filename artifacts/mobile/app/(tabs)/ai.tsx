@@ -20,29 +20,57 @@ interface Message {
   role: 'user' | 'assistant';
   text: string;
   time: string;
-  streaming?: boolean;
 }
 
 function now() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Fallback responses when API is unavailable
-function getFallback(text: string, mode: string): string {
-  const lower = text.toLowerCase();
+// ─── Local knowledge base ────────────────────────────────────────────────────
+function getLocalResponse(text: string, mode: string, userName: string): string {
+  const q = text.toLowerCase();
+
   if (mode === 'personal') {
-    if (lower.includes('invest') || lower.includes('portfolio')) return 'Based on your Behavioral Score of 87/100, your investment decisions are consistent and emotionally stable. I recommend maintaining your current 60% ETF allocation with gradual exposure to emerging markets. Your risk profile (Moderate) is well-aligned with your financial goals.';
-    if (lower.includes('emotion') || lower.includes('fomo') || lower.includes('panic')) return 'I\'ve detected elevated engagement patterns suggesting possible FOMO tendencies. Historical data shows that your best returns came from holding positions during volatile periods. Take a deep breath — your portfolio is designed for long-term growth, not short-term fluctuations.';
-    return 'Your Financial Health Score is 87/100 — excellent! Your savings rate is 32.4%, which is above the recommended 20%. I suggest reviewing your investment allocation and considering increasing your Emergency Fund to 6 months of expenses. Would you like a detailed analysis?';
+    if (q.includes('score') || q.includes('behavioral') || q.includes('assessment'))
+      return `${userName}, your Behavioral Score is 87/100 — that's in the top 18% of Madarik users. Key strengths: strong discipline (92/100) and stability (85/100). Your main growth area is patience during volatility. Would you like to take the full Monthly Behavioral Assessment?`;
+    if (q.includes('invest') || q.includes('portfolio'))
+      return 'Based on your Moderate risk profile, your current allocation is well-balanced: 60% ETFs, 25% fixed income, 15% cash. I recommend a gradual +5% shift toward emerging markets as your Discipline Score supports higher-volatility instruments. Expected return: +9.2% annually.';
+    if (q.includes('emotion') || q.includes('fomo') || q.includes('fear') || q.includes('panic'))
+      return 'I\'ve detected elevated emotion signals in your recent activity patterns — possible FOMO tendencies. Historical data shows your best returns came from holding during volatility. Your Emotional Stability is 88% — strong. Take a moment before any reactive trade. Your plan is working.';
+    if (q.includes('spending') || q.includes('expense'))
+      return 'Spending Analysis: SAR 8,430 this month. Top categories: Dining (SAR 2,100 · 25%), Shopping (SAR 1,850 · 22%), Transport (SAR 980 · 12%). You are 8% over your self-set dining budget. Want me to suggest an adjustment plan?';
+    if (q.includes('goal') || q.includes('saving'))
+      return 'You have 2 active goals: Emergency Fund (SAR 23,000 / 30,000 — 77% complete, on track for September) and Hajj Travel (SAR 8,500 / 15,000 — 57%, projected December). Your savings rate of 32.4% is excellent — above the recommended 20%.';
+    if (q.includes('card') || q.includes('credit'))
+      return 'You have 2 active cards: Card ending 3456 — Balance SAR 8,500 (limit SAR 20,000, 43% utilized, good standing). Card ending 4xxx — Balance SAR 150 (near limit). I recommend paying off Card 4xxx this month to improve your credit utilization ratio.';
+    if (q.includes('risk') || q.includes('profile'))
+      return 'Your Risk Profile: Moderate. You show a balanced approach with an 84% confidence score. Based on 6 months of behavioral data, you handle market dips well but occasionally over-react to positive news. Recommended: maintain current strategy, set price alerts rather than watching charts daily.';
+    return `${userName}, your financial health is excellent (87/100). Savings rate: 32.4% ✓. Portfolio growth: +3.2% this quarter. Behavioral Score: 87. I can analyze your investments, spending patterns, behavioral triggers, or savings goals. What would you like to explore?`;
   }
-  if (lower.includes('cash flow') || lower.includes('cashflow')) return 'Your cash flow shows strong inflows with 12% growth. The 30-day forecast projects SAR 120,000 net. I recommend moving your SAR 45,000 surplus to a high-yield account to maximize working capital efficiency.';
-  if (lower.includes('expense') || lower.includes('cost')) return 'Operational expenses are up 3.2% this quarter. Key optimization opportunities: (1) Supplier bulk deals — SAR 8,000/month savings, (2) Software consolidation — SAR 1,800/month savings. Total potential: SAR 12,000/month.';
-  if (lower.includes('loan') || lower.includes('financ')) return 'You are pre-approved for SAR 50,000 at 4.5% fixed rate. Business Health Score: 89/100. Monthly installment: SAR 4,354 over 12 months.';
-  return 'I\'ve analyzed your financial data. Business Health Score: 89/100. Revenue: SAR 310K (+12%). What specific area would you like me to analyze?';
+
+  // Business mode
+  if (q.includes('cash flow') || q.includes('cashflow') || q.includes('liquidity'))
+    return 'Cash flow is strong: SAR 370K inflow vs SAR 280K outflow this month. Net: +SAR 90K. 30-day forecast projects +SAR 120K surplus. Recommendation: move SAR 45K to a high-yield business account. Your cash runway is 4.2 months — healthy. Want a detailed monthly breakdown?';
+  if (q.includes('expense') || q.includes('cost') || q.includes('spending'))
+    return 'Operational expenses: SAR 280K this month (+3.2% vs last). Top categories: Payroll 30% (SAR 85K), Supplier Costs 22%, Rent & Utilities 12%, Marketing 8%. Optimization opportunity: bulk supplier deal could save SAR 8K/month. Software consolidation: SAR 1,800/month. Total potential savings: SAR 12K/month.';
+  if (q.includes('loan') || q.includes('financ') || q.includes('credit'))
+    return 'You are pre-approved for up to SAR 500,000 in business financing. Business Health Score: 89/100 qualifies you for the premium rate of 4.5% fixed. SAR 200K loan → SAR 17,417/month over 12 months. SAR 500K loan → SAR 43,542/month over 12 months. Shall I prepare the application?';
+  if (q.includes('revenue') || q.includes('income') || q.includes('sales'))
+    return 'Revenue this month: SAR 310K (+12% YoY, +4.8% MoM). Top revenue source: Client Projects (68%). Recurring subscriptions: SAR 42K/month. Q3 forecast: SAR 340K based on pipeline. 3 pending client invoices totaling SAR 87K due this week.';
+  if (q.includes('payroll') || q.includes('salary') || q.includes('employee'))
+    return 'Payroll this month: SAR 85,000 for 14 employees. Next payroll due: in 5 days. GOSI contributions: SAR 8,500 (10%). End-of-service provisions: on track. Tip: payroll automation through the Madarik payroll module can reduce processing time by 80%.';
+  if (q.includes('vat') || q.includes('tax') || q.includes('zakat'))
+    return 'VAT Q2 filing: SAR 22,500 due in 8 days. Estimated annual Zakat: SAR 14,200 (based on current net worth). I recommend setting aside SAR 1,850/month for quarterly VAT to avoid cash flow disruption. Want me to generate the VAT summary report?';
+  if (q.includes('health') || q.includes('score'))
+    return 'Business Health Score: 89/100 — Excellent. Breakdown: Liquidity 92/100 ✓, Profitability 87/100 ✓, Debt Coverage 91/100 ✓, Growth Trend 84/100 ✓. Your score places you in the top 15% of Madarik Business clients. Main opportunity: optimizing payment collection cycle (currently 28 days avg).';
+  if (q.includes('forecast') || q.includes('predict') || q.includes('future'))
+    return 'Q3 Forecast: Revenue SAR 340K (+9.7%), Expenses SAR 295K (+5.4%), Net Profit SAR 45K. Full-year projection: Revenue SAR 1.28M, EBITDA margin 24%. Key risk factor: 2 major client contracts up for renewal in August. I recommend preparing renewal proposals now.';
+
+  return 'Business Health Score: 89/100 · Revenue: SAR 310K (+12%) · Cash Position: SAR 420K · Upcoming Payments: SAR 125K this week. I can analyze your cash flow, expenses, revenue trends, loan eligibility, VAT obligations, payroll, or business health. What would you like to dive into?';
 }
 
 const BUSINESS_PROMPTS = ['Analyze cash flow', 'Reduce expenses', 'Loan eligibility', 'Revenue forecast'];
-const PERSONAL_PROMPTS = ['My behavioral score', 'Emotion detection', 'Portfolio allocation', 'Investment goals'];
+const PERSONAL_PROMPTS = ['My behavioral score', 'Emotion detection', 'Portfolio allocation', 'Savings goals'];
 
 export default function AIScreen() {
   const insets = useSafeAreaInsets();
@@ -52,14 +80,13 @@ export default function AIScreen() {
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPad = Platform.OS === 'web' ? 34 : insets.bottom;
   const isPersonal = mode === 'personal';
-  const quickPrompts = isPersonal ? PERSONAL_PROMPTS : BUSINESS_PROMPTS;
 
   const INITIAL: Message[] = [{
     id: '0',
     role: 'assistant',
     text: isPersonal
       ? `Hi ${firstName}! I'm Modrik, your behavioral finance advisor. I monitor your investment patterns, emotional triggers, and portfolio health in real time. How can I help you today?`
-      : `Hello! I'm Modrik, your AI financial advisor. I have real-time access to your business data and can help with cash flow, expenses, financing, and forecasting. How can I assist you?`,
+      : `Hello! I'm Modrik, your AI business financial advisor. I have real-time access to your business data and can help with cash flow, expenses, financing, and forecasting. How can I assist?`,
     time: now(),
   }];
 
@@ -68,77 +95,26 @@ export default function AIScreen() {
   const [loading, setLoading] = useState(false);
   const flatRef = useRef<FlatList>(null);
 
-  const apiBase = `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
-
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text: trimmed, time: now() };
-    const aiMsgId = `ai-${Date.now()}`;
-
     setMessages(prev => [userMsg, ...prev]);
     setInput('');
     setLoading(true);
 
-    // Build chat history for API (oldest first)
-    const history = [...messages].reverse().map(m => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.text,
-    }));
-    history.push({ role: 'user', content: trimmed });
+    // Simulate natural thinking time (800–1400 ms)
+    const delay = 800 + Math.random() * 600;
+    await new Promise(r => setTimeout(r, delay));
 
-    try {
-      const response = await fetch(`${apiBase}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history.slice(-20), mode: mode ?? 'business' }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      // Add empty streaming message
-      setMessages(prev => [{ id: aiMsgId, role: 'assistant', text: '', time: now(), streaming: true }, ...prev]);
-      setLoading(false);
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let fullText = '';
-
-      while (reader) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.slice(6)) as { content?: string; done?: boolean; error?: string };
-            if (data.content) {
-              fullText += data.content;
-              const snap = fullText;
-              setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: snap } : m));
-            }
-            if (data.done || data.error) break;
-          } catch {}
-        }
-      }
-
-      // Finalize
-      setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, streaming: false } : m));
-
-    } catch {
-      setLoading(false);
-      // Fallback response
-      setMessages(prev => [{
-        id: aiMsgId, role: 'assistant',
-        text: getFallback(trimmed, mode ?? 'business'),
-        time: now(),
-      }, ...prev]);
-    }
+    setLoading(false);
+    setMessages(prev => [{
+      id: `ai-${Date.now()}`,
+      role: 'assistant',
+      text: getLocalResponse(trimmed, mode ?? 'business', firstName),
+      time: now(),
+    }, ...prev]);
   };
 
   const renderItem = ({ item }: { item: Message }) => {
@@ -153,7 +129,6 @@ export default function AIScreen() {
         <View style={[styles.bubble, isAI ? styles.bubbleAI : styles.bubbleUser]}>
           <Text style={[styles.bubbleText, isAI ? styles.bubbleTextAI : styles.bubbleTextUser]}>
             {item.text}
-            {item.streaming && <Text style={{ color: '#4f46e5' }}>▍</Text>}
           </Text>
           <Text style={[styles.bubbleTime, isAI ? styles.bubbleTimeAI : styles.bubbleTimeUser]}>
             {item.time}
@@ -188,24 +163,18 @@ export default function AIScreen() {
       {/* Panic-protect banner for personal mode */}
       {isPersonal && (
         <View style={styles.alertBanner}>
-          <View style={styles.alertContent}>
-            <View style={styles.alertLeft}>
-              <Ionicons name="warning-outline" size={14} color="#f59e0b" />
-              <Text style={styles.alertText}> Modrik: Market volatility detected. Emotional stability score: 88%</Text>
-            </View>
+          <View style={styles.alertLeft}>
+            <Ionicons name="warning-outline" size={14} color="#f59e0b" />
+            <Text style={styles.alertText}> Modrik: Market volatility detected. Emotional stability score: 88%</Text>
           </View>
-          <TouchableOpacity style={styles.protectBtn}>
+          <TouchableOpacity style={styles.protectBtn} onPress={() => sendMessage('Help me protect my portfolio from market volatility')}>
             <Ionicons name="shield-checkmark-outline" size={12} color="#fff" />
-            <Text style={styles.protectText}> Yes, protect my portfolio</Text>
+            <Text style={styles.protectText}> Protect portfolio</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
         <FlatList
           ref={flatRef}
           data={messages}
@@ -232,10 +201,10 @@ export default function AIScreen() {
           }
         />
 
-        {/* Personal mode bottom actions */}
+        {/* Personal-mode chips */}
         {isPersonal && (
           <View style={styles.personalActions}>
-            <TouchableOpacity style={styles.actionChip}>
+            <TouchableOpacity style={styles.actionChip} onPress={() => sendMessage('Show me my investment history')}>
               <Ionicons name="time-outline" size={13} color="#374151" />
               <Text style={styles.actionChipText}>Show History</Text>
             </TouchableOpacity>
@@ -248,25 +217,27 @@ export default function AIScreen() {
 
         {/* Quick prompts */}
         <View style={styles.quickPrompts}>
-          {quickPrompts.map((p) => (
+          {(isPersonal ? PERSONAL_PROMPTS : BUSINESS_PROMPTS).map((p) => (
             <TouchableOpacity key={p} style={styles.quickChip} onPress={() => sendMessage(p)} activeOpacity={0.8}>
               <Text style={styles.quickChipText}>{p}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Input */}
+        {/* Input bar */}
         <View style={[styles.inputBar, { paddingBottom: Math.max(bottomPad, 16) }]}>
           <View style={styles.inputWrap}>
             <TextInput
               style={styles.input}
               value={input}
               onChangeText={setInput}
-              placeholder={isPersonal ? "Ask Modrik about your investments..." : "Ask Modrik anything..."}
+              placeholder={isPersonal ? 'Ask Modrik about your investments...' : 'Ask Modrik anything...'}
               placeholderTextColor="#94a3b8"
               multiline
               maxLength={500}
+              returnKeyType="send"
               onSubmitEditing={() => sendMessage(input)}
+              blurOnSubmit={false}
             />
             <TouchableOpacity
               style={[styles.sendBtn, (!input.trim() || loading) && styles.sendBtnDisabled]}
@@ -293,14 +264,11 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22c55e' },
   onlineText: { fontSize: 10, color: '#94a3b8', fontFamily: 'Inter_400Regular' },
   headerAction: { padding: 4 },
-
-  alertBanner: { backgroundColor: '#1e1b4b', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
-  alertContent: { marginBottom: 8 },
+  alertBanner: { backgroundColor: '#1e1b4b', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', gap: 8 },
   alertLeft: { flexDirection: 'row', alignItems: 'center' },
   alertText: { fontSize: 11, color: '#fde68a', flex: 1, fontFamily: 'Inter_400Regular' },
   protectBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4f46e5', borderRadius: 10, paddingVertical: 8 },
   protectText: { fontSize: 12, fontWeight: '600', color: '#fff', fontFamily: 'Inter_600SemiBold' },
-
   msgRow: { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-end' },
   msgRowAI: { justifyContent: 'flex-start' },
   msgRowUser: { justifyContent: 'flex-end' },
@@ -316,15 +284,12 @@ const styles = StyleSheet.create({
   bubbleTimeUser: { color: 'rgba(255,255,255,0.6)' },
   typingDots: { flexDirection: 'row', gap: 4, paddingVertical: 2 },
   typingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#94a3b8' },
-
   personalActions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
   actionChip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 20, borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 14, paddingVertical: 7, backgroundColor: '#fff' },
   actionChipText: { fontSize: 12, color: '#374151', fontFamily: 'Inter_500Medium' },
-
   quickPrompts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
   quickChip: { backgroundColor: '#eef2ff', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7, borderWidth: 1, borderColor: '#c7d2fe' },
   quickChipText: { fontSize: 12, color: '#4f46e5', fontFamily: 'Inter_500Medium' },
-
   inputBar: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f1f5f9', padding: 12 },
   inputWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: '#f8fafc', borderRadius: 22, borderWidth: 1, borderColor: '#e2e8f0', paddingHorizontal: 14, paddingVertical: 8 },
   input: { flex: 1, fontSize: 15, color: '#1e293b', maxHeight: 100, fontFamily: 'Inter_400Regular' },
