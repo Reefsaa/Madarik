@@ -7,12 +7,12 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,8 +56,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
+      <Pressable style={styles.container} onPress={() => { if (Platform.OS !== 'web') Keyboard.dismiss(); }}>
           {/* Dark header */}
           <LinearGradient
             colors={['#04071a', '#0a0e27', '#130d3a', '#1a1060']}
@@ -173,8 +172,7 @@ export default function LoginScreen() {
               </View>
             </ScrollView>
           </View>
-        </View>
-      </TouchableWithoutFeedback>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 }
