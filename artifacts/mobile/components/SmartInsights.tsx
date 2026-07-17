@@ -5,9 +5,12 @@ import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from '
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const R = 36;
 const CIRC = 2 * Math.PI * R;
+
+const BUY_SELL = [12, 7, 15, 9, 18, 5, 11, 3, 8, 14, 6, 10];
 
 function ProgressBar({ label, pct, color = '#4f46e5' }: { label: string; pct: number; color?: string }) {
   return (
@@ -23,30 +26,30 @@ function ProgressBar({ label, pct, color = '#4f46e5' }: { label: string; pct: nu
   );
 }
 
-const EMOTION_PILLS = [
-  { label: 'Rational Decisions', active: true },
-  { label: 'Panic Selling', active: false },
-  { label: 'FOMO Detected', active: false },
-  { label: 'Overconfidence', active: false },
-];
-
-const SPENDING = [
-  { label: 'Food', amount: '890 ﷼', color: '#4f46e5' },
-  { label: 'Shopping', amount: '430 ﷼', color: '#818cf8' },
-  { label: 'Bills', amount: '1,200 ﷼', color: '#c7d2fe' },
-];
-
-const BUY_SELL = [12, 7, 15, 9, 18, 5, 11, 3, 8, 14, 6, 10];
-const GOALS = [
-  { label: 'Emergency\nFund', pct: 85, color: '#22c55e' },
-  { label: 'Investment\nGoal', pct: 42, color: '#f59e0b' },
-  { label: 'Savings\nGoal', pct: 68, color: '#4f46e5' },
-];
-
 export default function SmartInsights() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
+
+  const EMOTION_PILLS = [
+    { label: t('insightsRationalDec'), active: true },
+    { label: t('insightsPanicSell'),   active: false },
+    { label: t('insightsFOMO'),        active: false },
+    { label: t('insightsOverconf'),    active: false },
+  ];
+
+  const SPENDING = [
+    { label: t('insightsFood'),     amount: '890 ﷼',   color: '#4f46e5' },
+    { label: t('insightsShopping'), amount: '430 ﷼',   color: '#818cf8' },
+    { label: t('insightsBills'),    amount: '1,200 ﷼', color: '#c7d2fe' },
+  ];
+
+  const GOALS = [
+    { label: t('insightsEmergencyFund'),    pct: 85, color: '#22c55e' },
+    { label: t('insightsInvestGoal'),       pct: 42, color: '#f59e0b' },
+    { label: t('insightsSavingsGoalLabel'), pct: 68, color: '#4f46e5' },
+  ];
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'NQ';
   const score = 87;
   const scoreArc = CIRC * (score / 100);
@@ -56,7 +59,7 @@ export default function SmartInsights() {
       {/* Header */}
       <LinearGradient colors={['#0f172a', '#1e1b4b']} style={[styles.header, { paddingTop: topPad + 12 }]}>
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Smart Insigh</Text>
+          <Text style={styles.headerTitle}>{t('insightsTitle')}</Text>
           <View style={styles.avatarSmall}><Text style={styles.avatarText}>{initials}</Text></View>
         </View>
       </LinearGradient>
@@ -65,11 +68,11 @@ export default function SmartInsights() {
         {/* AI Behavior Score */}
         <View style={styles.card}>
           <View style={styles.scoreHeader}>
-            <Text style={styles.cardTitle}>AI Behavior Score</Text>
-            <Text style={styles.scoreSubtitle}>Monthly Assessment</Text>
+            <Text style={styles.cardTitle}>{t('insightsBehaviorScore')}</Text>
+            <Text style={styles.scoreSubtitle}>{t('insightsMonthlyAssess')}</Text>
           </View>
           <View style={styles.levelBadge}>
-            <Text style={styles.levelText}>Level: Excellent</Text>
+            <Text style={styles.levelText}>{t('insightsLevelExcellent')}</Text>
           </View>
           <View style={styles.scoreRow}>
             <View style={styles.ringWrap}>
@@ -85,25 +88,23 @@ export default function SmartInsights() {
               </View>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.scoreQuote}>
-                "Your investment decisions have been consistent and emotionally balanced this month. Keep it up!"
-              </Text>
+              <Text style={styles.scoreQuote}>{t('insightsScoreQuote')}</Text>
             </View>
           </View>
-          <ProgressBar label="STABILITY" pct={92} color="#4f46e5" />
-          <ProgressBar label="DISCIPLINE" pct={84} color="#818cf8" />
+          <ProgressBar label={t('insightsStability')} pct={92} color="#4f46e5" />
+          <ProgressBar label={t('insightsDiscipline')} pct={84} color="#818cf8" />
         </View>
 
         {/* Risk Profile */}
         <View style={styles.card}>
           <View style={styles.riskRow}>
             <View>
-              <Text style={styles.cardTitle}>Risk Profile</Text>
-              <Text style={styles.riskLevel}>Moderate</Text>
+              <Text style={styles.cardTitle}>{t('insightsRiskProfile')}</Text>
+              <Text style={styles.riskLevel}>{t('insightsModerate')}</Text>
             </View>
             <View style={styles.riskRight}>
-              <View style={styles.riskBadge}><Text style={styles.riskBadgeText}>Medium Risk</Text></View>
-              <Text style={styles.confLabel}>Confidence</Text>
+              <View style={styles.riskBadge}><Text style={styles.riskBadgeText}>{t('insightsMediumRisk')}</Text></View>
+              <Text style={styles.confLabel}>{t('insightsConfidence')}</Text>
               <Text style={styles.confValue}>94%</Text>
             </View>
           </View>
@@ -113,7 +114,7 @@ export default function SmartInsights() {
         <View style={styles.card}>
           <View style={styles.emotionHeader}>
             <Ionicons name="radio-button-on-outline" size={16} color="#4f46e5" />
-            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>Emotion Detection</Text>
+            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>{t('insightsEmotionDetect')}</Text>
           </View>
           <View style={styles.pillGrid}>
             {EMOTION_PILLS.map((p) => (
@@ -123,10 +124,8 @@ export default function SmartInsights() {
             ))}
           </View>
           <View style={styles.aiInsightBox}>
-            <Text style={styles.aiInsightLabel}>AI Insight:</Text>
-            <Text style={styles.aiInsightText}>
-              Recent activity suggests emotional trading after short-term market fluctuations in the tech sector.
-            </Text>
+            <Text style={styles.aiInsightLabel}>{t('insightsAiInsightLabel')}</Text>
+            <Text style={styles.aiInsightText}>{t('insightsAiInsightText')}</Text>
           </View>
         </View>
 
@@ -134,18 +133,18 @@ export default function SmartInsights() {
         <View style={styles.card}>
           <View style={styles.spendingHeader}>
             <Ionicons name="pie-chart-outline" size={15} color="#4f46e5" />
-            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>Spending Analysis</Text>
-            <Text style={styles.monthlyTag}>MONTHLY</Text>
+            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>{t('insightsSpendAnalysis')}</Text>
+            <Text style={styles.monthlyTag}>{t('insightsMonthlyTag')}</Text>
           </View>
           <View style={styles.spendingRow}>
             <View style={styles.donut}>
               <View style={styles.donutInner}>
-                <Text style={styles.donutLabel}>Savings{'\n'}Rate</Text>
+                <Text style={styles.donutLabel}>{t('insightsSavingsRate')}</Text>
                 <Text style={styles.donutValue}>32.4%</Text>
               </View>
             </View>
             <View style={styles.spendingRight}>
-              <Text style={styles.spendingTotal}>Total Expenses</Text>
+              <Text style={styles.spendingTotal}>{t('insightsTotalExp')}</Text>
               <Text style={styles.spendingTotalVal}>3,030 ﷼</Text>
               {SPENDING.map((s) => (
                 <View key={s.label} style={styles.spendingItem}>
@@ -162,35 +161,35 @@ export default function SmartInsights() {
         <View style={styles.card}>
           <View style={styles.investHeader}>
             <Ionicons name="stats-chart-outline" size={15} color="#4f46e5" />
-            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>Investment Activity</Text>
+            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>{t('insightsInvestActivity')}</Text>
           </View>
           <View style={styles.investRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.investLabel}>BUY VS SELL</Text>
+              <Text style={styles.investLabel}>{t('insightsBuySell')}</Text>
               <View style={styles.miniChart}>
                 {BUY_SELL.map((v, i) => (
                   <View key={i} style={[styles.miniBar, { height: v * 3, backgroundColor: i % 3 === 2 ? '#fca5a5' : '#4f46e5' }]} />
                 ))}
               </View>
               <View style={styles.buySellLegend}>
-                <Text style={styles.buyCount}>24 Buy</Text>
-                <Text style={styles.sellCount}>3 Sell</Text>
+                <Text style={styles.buyCount}>{t('insightsBuyCount')}</Text>
+                <Text style={styles.sellCount}>{t('insightsSellCount')}</Text>
               </View>
             </View>
             <View style={styles.horizonCol}>
-              <Text style={styles.investLabel}>HORIZON</Text>
+              <Text style={styles.investLabel}>{t('insightsHorizon')}</Text>
               <View style={styles.horizonRow}>
-                <Text style={styles.horizonLabel}>Long</Text>
+                <Text style={styles.horizonLabel}>{t('insightsLong')}</Text>
                 <View style={[styles.horizonBar, { width: 60, backgroundColor: '#4f46e5' }]} />
               </View>
               <View style={styles.horizonRow}>
-                <Text style={styles.horizonLabel}>Short</Text>
+                <Text style={styles.horizonLabel}>{t('insightsShort')}</Text>
                 <View style={[styles.horizonBar, { width: 30, backgroundColor: '#c7d2fe' }]} />
               </View>
             </View>
           </View>
           <View style={styles.portfolioRow}>
-            <Text style={styles.investLabel}>PORTFOLIO GROWTH</Text>
+            <Text style={styles.investLabel}>{t('insightsPortfolioGrowth')}</Text>
             <Text style={styles.growthVal}>+12.5%</Text>
           </View>
           <Text style={styles.portfolioAmt}>10,900 ﷼</Text>
@@ -201,13 +200,13 @@ export default function SmartInsights() {
           <View style={styles.recHeader}>
             <View style={styles.recHeaderLeft}>
               <Ionicons name="sparkles-outline" size={15} color="#4f46e5" />
-              <Text style={[styles.cardTitle, { marginLeft: 6 }]}>Recommendations</Text>
+              <Text style={[styles.cardTitle, { marginLeft: 6 }]}>{t('insightsRecommendations')}</Text>
             </View>
             <TouchableOpacity style={styles.smartPlanBtn} onPress={() => router.push('/(tabs)/ai')}>
-              <Text style={styles.smartPlanText}>Smart Plan</Text>
+              <Text style={styles.smartPlanText}>{t('insightsSmartPlan')}</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.allocLabel}>SUGGESTED ALLOCATION</Text>
+          <Text style={styles.allocLabel}>{t('insightsSuggestedAlloc')}</Text>
           <View style={styles.allocRow}>
             {[{ label: '60% ETFs', color: '#1e40af' }, { label: '25% Stocks', color: '#4f46e5' }, { label: '15% Cash', color: '#c7d2fe' }].map((a) => (
               <View key={a.label} style={[styles.allocBadge, { backgroundColor: a.color }]}>
@@ -217,12 +216,12 @@ export default function SmartInsights() {
           </View>
           <View style={styles.allocMeta}>
             <View>
-              <Text style={styles.allocMetaLabel}>MONTHLY TARGET</Text>
+              <Text style={styles.allocMetaLabel}>{t('insightsMonthlyTarget')}</Text>
               <Text style={styles.allocMetaVal}>1,200 ﷼</Text>
             </View>
             <View style={styles.riskAdjust}>
-              <Text style={styles.allocMetaLabel}>RISK ADJUST</Text>
-              <Text style={[styles.allocMetaVal, { color: '#ef4444' }]}>-5% Aggression</Text>
+              <Text style={styles.allocMetaLabel}>{t('insightsRiskAdjust')}</Text>
+              <Text style={[styles.allocMetaVal, { color: '#ef4444' }]}>-5%</Text>
             </View>
           </View>
         </View>
@@ -231,7 +230,7 @@ export default function SmartInsights() {
         <View style={styles.card}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
             <Ionicons name="flag-outline" size={15} color="#4f46e5" />
-            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>Financial Goals</Text>
+            <Text style={[styles.cardTitle, { marginLeft: 6 }]}>{t('insightsFinGoals')}</Text>
           </View>
           <View style={styles.goalsRow}>
             {GOALS.map((g) => (
@@ -248,7 +247,7 @@ export default function SmartInsights() {
 
         <TouchableOpacity style={styles.assessBtn} onPress={() => router.push('/behavioral-assessment')} activeOpacity={0.85}>
           <Ionicons name="analytics-outline" size={16} color="#fff" />
-          <Text style={styles.assessBtnText}>Update Behavioral Assessment</Text>
+          <Text style={styles.assessBtnText}>{t('insightsUpdateAssess')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

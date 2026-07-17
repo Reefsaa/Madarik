@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLanguage } from '@/context/LanguageContext';
 
 type Period = '30D' | '60D' | '90D' | '1Y';
 
@@ -14,37 +15,38 @@ const REVENUE_DATA: Record<Period, number[]> = {
   '1Y':  [18, 24, 30, 33, 27, 38, 22, 31, 25, 35, 26, 39],
 };
 
-const KPIS = [
-  { label: 'Gross Margin', value: '32.4%', change: '+2.1%', pos: true },
-  { label: 'Net Margin', value: '21.0%', change: '+1.8%', pos: true },
-  { label: 'ROI', value: '18.6%', change: '+0.9%', pos: true },
-  { label: 'Burn Rate', value: 'SAR 8,166/d', change: '-3.2%', pos: true },
-];
-
-const EXPENSES = [
-  { label: 'Payroll', pct: 35, color: '#4f46e5', amount: 'SAR 85,750' },
-  { label: 'Operations', pct: 22, color: '#818cf8', amount: 'SAR 53,900' },
-  { label: 'Suppliers', pct: 18, color: '#a5b4fc', amount: 'SAR 44,100' },
-  { label: 'Rent', pct: 15, color: '#c7d2fe', amount: 'SAR 36,750' },
-  { label: 'Other', pct: 10, color: '#e0e7ff', amount: 'SAR 24,500' },
-];
-
 const MONTHS = ['J','F','M','A','M','J','J','A','S','O','N','D'];
 
 export default function BusinessInsights() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [period, setPeriod] = useState<Period>('30D');
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const bars = REVENUE_DATA[period];
   const maxBar = Math.max(...bars);
+
+  const KPIS = [
+    { label: t('analyticsGrossMargin'), value: '32.4%', change: '+2.1%', pos: true },
+    { label: t('analyticsNetMargin'),   value: '21.0%', change: '+1.8%', pos: true },
+    { label: t('analyticsROI'),         value: '18.6%', change: '+0.9%', pos: true },
+    { label: t('analyticsBurnRate'),    value: 'SAR 8,166/d', change: '-3.2%', pos: true },
+  ];
+
+  const EXPENSES = [
+    { label: t('analyticsPayroll'),    pct: 35, color: '#4f46e5', amount: 'SAR 85,750' },
+    { label: t('analyticsOperations'), pct: 22, color: '#818cf8', amount: 'SAR 53,900' },
+    { label: t('analyticsSuppliers'),  pct: 18, color: '#a5b4fc', amount: 'SAR 44,100' },
+    { label: t('analyticsRentUtil'),   pct: 15, color: '#c7d2fe', amount: 'SAR 36,750' },
+    { label: t('analyticsOther'),      pct: 10, color: '#e0e7ff', amount: 'SAR 24,500' },
+  ];
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
       <LinearGradient colors={['#0f172a', '#1e1b4b']} style={[styles.header, { paddingTop: topPad + 12 }]}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>Analytics</Text>
-            <Text style={styles.headerSub}>Financial overview · Jul 2026</Text>
+            <Text style={styles.headerTitle}>{t('analyticsTitle')}</Text>
+            <Text style={styles.headerSub}>{t('analyticsSubtitle')}</Text>
           </View>
           <TouchableOpacity style={styles.exportBtn}>
             <Ionicons name="share-outline" size={16} color="#a5b4fc" />
@@ -52,9 +54,9 @@ export default function BusinessInsights() {
         </View>
         <View style={styles.summaryRow}>
           {[
-            { l: 'REVENUE', v: 'SAR 310K', c: '+12%', pos: true },
-            { l: 'EXPENSES', v: 'SAR 245K', c: '+3.2%', pos: false },
-            { l: 'NET PROFIT', v: 'SAR 65K', c: '+21%', pos: true },
+            { l: t('analyticsRevenue'),   v: 'SAR 310K', c: '+12%',  pos: true  },
+            { l: t('analyticsExpenses'),  v: 'SAR 245K', c: '+3.2%', pos: false },
+            { l: t('analyticsNetProfit'), v: 'SAR 65K',  c: '+21%',  pos: true  },
           ].map((s) => (
             <View key={s.l} style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>{s.l}</Text>
@@ -76,7 +78,7 @@ export default function BusinessInsights() {
 
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>Revenue Trend</Text>
+            <Text style={styles.cardTitle}>{t('analyticsRevenueTrend')}</Text>
             <Text style={styles.cardSub}>SAR 310,000 avg/month</Text>
           </View>
           <View style={styles.chart}>
@@ -102,7 +104,7 @@ export default function BusinessInsights() {
         </View>
 
         <View style={styles.card}>
-          <Text style={[styles.cardTitle, { marginBottom: 16 }]}>Expense Breakdown</Text>
+          <Text style={[styles.cardTitle, { marginBottom: 16 }]}>{t('analyticsExpenseBreakdown')}</Text>
           {EXPENSES.map((e) => (
             <View key={e.label} style={styles.expenseRow}>
               <View style={[styles.expenseDot, { backgroundColor: e.color }]} />
@@ -118,9 +120,9 @@ export default function BusinessInsights() {
         <View style={styles.healthCard}>
           <LinearGradient colors={['#4f46e5', '#7c3aed']} style={styles.healthGradient}>
             <View>
-              <Text style={styles.healthLabel}>Business Health Score</Text>
+              <Text style={styles.healthLabel}>{t('analyticsHealthScore')}</Text>
               <Text style={styles.healthScore}>89 / 100</Text>
-              <Text style={styles.healthDesc}>Excellent performance this quarter</Text>
+              <Text style={styles.healthDesc}>{t('analyticsHealthDesc')}</Text>
             </View>
             <Ionicons name="shield-checkmark" size={48} color="rgba(255,255,255,0.2)" />
           </LinearGradient>

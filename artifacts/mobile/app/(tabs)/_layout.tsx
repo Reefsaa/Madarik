@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useAppMode } from '@/context/AppModeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, useColorScheme, View } from 'react-native';
@@ -14,6 +15,7 @@ export default function TabLayout() {
   const isWeb = Platform.OS === 'web';
   const safeAreaInsets = useSafeAreaInsets();
   const { mode } = useAppMode();
+  const { t } = useLanguage();
   const isBusiness = mode === 'business';
 
   return (
@@ -43,7 +45,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: isBusiness ? 'Dashboard' : 'Home',
+          title: isBusiness ? t('tabDashboard') : t('tabHome'),
           tabBarIcon: ({ color }) => (
             <Ionicons name={isBusiness ? 'grid-outline' : 'home-outline'} size={22} color={color} />
           ),
@@ -54,7 +56,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cashflow"
         options={{
-          title: 'Cash Flow',
+          title: t('tabCashFlow'),
           href: isBusiness ? undefined : null,
           tabBarIcon: ({ color }) => <Ionicons name="water-outline" size={22} color={color} />,
         }}
@@ -64,7 +66,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ai"
         options={{
-          title: 'Modrik',
+          title: t('tabModrik'),
           tabBarIcon: ({ color }) => <Ionicons name="sparkles-outline" size={22} color={color} />,
         }}
       />
@@ -73,7 +75,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="insights"
         options={{
-          title: isBusiness ? 'Analytics' : 'Insights',
+          title: isBusiness ? t('tabAnalytics') : t('tabInsights'),
           tabBarIcon: ({ color }) => (
             <Ionicons name={isBusiness ? 'bar-chart-outline' : 'trending-up-outline'} size={22} color={color} />
           ),
@@ -84,7 +86,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabProfile'),
           href: isBusiness ? undefined : null,
           tabBarIcon: ({ color }) => <Ionicons name="person-circle-outline" size={22} color={color} />,
         }}
@@ -92,7 +94,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('tabSettings'),
           href: isBusiness ? null : undefined,
           tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} />,
         }}

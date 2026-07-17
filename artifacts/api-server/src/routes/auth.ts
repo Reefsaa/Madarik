@@ -8,7 +8,7 @@ const authRouter = Router();
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const MOBILE_RE   = /^\d{10}$/;
+const MOBILE_RE   = /^5\d{8}$/;
 const NATID_RE    = /^\d{10,}$/;
 const USERNAME_RE = /^[a-zA-Z0-9_]+$/;
 
@@ -72,7 +72,7 @@ authRouter.post("/auth/register", async (req, res) => {
       fieldErr(res, 400, "mobile", "Mobile must contain digits only"); return;
     }
     if (!MOBILE_RE.test(normMobile)) {
-      fieldErr(res, 400, "mobile", "Mobile number must be exactly 10 digits"); return;
+      fieldErr(res, 400, "mobile", "Mobile number must be exactly 9 digits and start with 5"); return;
     }
   }
 

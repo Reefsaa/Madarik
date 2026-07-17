@@ -20,7 +20,7 @@ import MadarikLogo from '@/components/MadarikLogo';
 
 // ─── Regex ────────────────────────────────────────────────────────────────────
 const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const MOBILE_RE   = /^\d{10}$/;
+const MOBILE_RE   = /^5\d{8}$/;
 const NATID_RE    = /^\d{10,}$/;
 const USERNAME_RE = /^[a-zA-Z0-9_]+$/;
 
