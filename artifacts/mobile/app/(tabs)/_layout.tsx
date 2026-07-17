@@ -64,7 +64,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ai"
         options={{
-          title: isBusiness ? 'AI Assistant' : 'Ask Modrik',
+          title: 'Modrik',
           tabBarIcon: ({ color }) => <Ionicons name="sparkles-outline" size={22} color={color} />,
         }}
       />
