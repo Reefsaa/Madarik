@@ -1,0 +1,50 @@
+Act as a senior full-stack engineer.
+
+IMPORTANT:
+Do NOT redesign, modify, or replace any UI components.
+Do NOT change colors, fonts, spacing, layouts, animations, icons, navigation, screens, or user experience.
+Preserve the current UI exactly as it is.
+Only fix the backend, database, authentication, and API logic.
+
+Current status:
+- The Login screen UI works correctly.
+- The Business Registration (Sign Up) UI works correctly.
+- The issue is that users cannot successfully register or log in.
+- This appears to be a backend/database/authentication problem.
+
+Your tasks:
+
+1. Analyze the entire authentication flow.
+2. Verify the frontend is sending the correct requests.
+3. Verify all backend authentication endpoints.
+4. Verify the database connection.
+5. Check all environment variables (.env).
+6. Verify database schema and required tables.
+7. Ensure registration correctly saves new users.
+8. Ensure passwords are securely hashed and verified.
+9. Ensure login validates credentials correctly.
+10. Fix any API, SQL, routing, validation, or authentication issues.
+11. Add proper backend error handling and logging.
+12. Ensure successful registration redirects correctly.
+13. Ensure successful login creates the proper session/token and navigates to the dashboard.
+14. Test both Business Mode and Personal Mode if they use different authentication flows.
+15. Automatically detect whether the project uses Supabase, Firebase, PostgreSQL, SQLite, MySQL, Prisma, MongoDB, or another database, and fix the integration accordingly.
+16. If migrations, tables, API routes, or authentication logic are missing, implement them without changing the UI.
+17. Preserve all existing features and screens.
+
+STRICT RULES:
+- DO NOT edit any UI files unless absolutely required to connect them to the backend.
+- DO NOT modify styling.
+- DO NOT rename components.
+- DO NOT remove existing functionality.
+- DO NOT change navigation flow unless required to fix authentication.
+- DO NOT refactor unrelated code.
+- ONLY fix the authentication, backend, database, and API integration.
+
+At the end:
+- Explain every issue found.
+- Explain every fix applied.
+- List every modified file.
+- Confirm that Sign Up stores users correctly.
+- Confirm that Login works correctly.
+- Confirm that the UI remains exactly the same.
