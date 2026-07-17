@@ -16,7 +16,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-const STORAGE_KEY = 'madarik_user_v1';
+const STORAGE_KEY = 'madarik_user_v2';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
