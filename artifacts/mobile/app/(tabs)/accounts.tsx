@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '@/context/AuthContext';
 
 function QuickAction({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: string }) {
   return (
@@ -61,7 +62,9 @@ function AccountCard({ icon, name, type, balance, badge, rightLabel, rightValue,
 
 export default function AccountsScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
+  const firstName = user?.name?.split(' ')[0] || 'there';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
@@ -72,7 +75,7 @@ export default function AccountsScreen() {
             <Ionicons name="add" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
-        <Text style={styles.welcome}>Welcome back, Abdulrahman</Text>
+        <Text style={styles.welcome}>Welcome back, {firstName}</Text>
         <Text style={styles.welcomeSub}>Manage all your business accounts in one place.</Text>
 
         {/* Total Balance */}

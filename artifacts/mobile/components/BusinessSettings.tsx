@@ -77,7 +77,7 @@ export default function BusinessSettings() {
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user?.name || 'Abdulrahman Al-Rashidi'}</Text>
+            <Text style={styles.profileName}>{user?.name || 'User'}</Text>
             <Text style={styles.profileEmail}>{user?.email || 'abdulrahman@madarik.sa'}</Text>
             <Text style={styles.profileCompany}>{user?.company || 'Madarik Holdings'}</Text>
           </View>

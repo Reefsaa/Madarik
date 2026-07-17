@@ -25,7 +25,7 @@ export default function BusinessHome() {
   const { user } = useAuth();
   const { setMode } = useAppMode();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const firstName = user?.name?.split(' ')[0] || 'Abdulrahman';
+  const firstName = user?.name?.split(' ')[0] || 'there';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>

@@ -32,7 +32,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, _password: string) => {
-    const u: User = { name: 'Abdulrahman Al-Rashidi', email, company: 'Madarik Holdings' };
+    // Derive a display name from whatever the user typed (email or username)
+    const raw = email.includes('@') ? email.split('@')[0] : email;
+    const displayName = raw
+      .replace(/[._-]+/g, ' ')
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    const u: User = { name: displayName, email, company: '' };
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(u));
     setUser(u);
   }, []);
