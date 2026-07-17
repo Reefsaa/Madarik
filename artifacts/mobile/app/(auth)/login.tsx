@@ -26,7 +26,7 @@ export default function LoginScreen() {
   const { login } = useAuth();
   const { mode } = useAppMode();
   const { t, toggleLanguage, language, isRTL } = useLanguage();
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -34,18 +34,23 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const isPersonal = mode === 'personal';
+  const isBusiness = mode === 'business';
   const dir = isRTL ? 'rtl' : 'ltr';
   const textAlign = isRTL ? 'right' : 'left';
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
+    if (!identifier.trim() || !password.trim()) {
       setError(isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields');
       return;
     }
     setError('');
     setLoading(true);
     try {
-      await login(username.trim(), password);
+      if (isBusiness) {
+        await login('', password, identifier.trim());
+      } else {
+        await login(identifier.trim(), password);
+      }
       router.replace('/(tabs)/');
     } catch {
       setError(isRTL ? 'بيانات غير صحيحة. حاول مرة أخرى.' : 'Invalid credentials. Please try again.');
@@ -100,14 +105,20 @@ export default function LoginScreen() {
 
               <View style={styles.inputGroup}>
                 <View style={[styles.inputWrap, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Ionicons name="person-outline" size={16} color="#9ca3af" style={isRTL ? styles.inputIconRTL : styles.inputIcon} />
+                  <Ionicons
+                    name={isBusiness ? 'document-text-outline' : 'person-outline'}
+                    size={16}
+                    color="#9ca3af"
+                    style={isRTL ? styles.inputIconRTL : styles.inputIcon}
+                  />
                   <TextInput
                     style={[styles.input, { textAlign }]}
-                    value={username}
-                    onChangeText={setUsername}
-                    placeholder={t('loginUserPlaceholder')}
+                    value={identifier}
+                    onChangeText={setIdentifier}
+                    placeholder={isBusiness ? t('loginCrPlaceholder') : t('loginUserPlaceholder')}
                     placeholderTextColor="#9ca3af"
                     autoCapitalize="none"
+                    keyboardType={isBusiness ? 'number-pad' : 'default'}
                   />
                 </View>
                 <View style={[styles.inputWrap, isRTL && { flexDirection: 'row-reverse' }]}>

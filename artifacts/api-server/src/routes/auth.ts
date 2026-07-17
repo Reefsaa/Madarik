@@ -150,18 +150,21 @@ authRouter.post("/auth/register", async (req, res) => {
 
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
 authRouter.post("/auth/login", async (req, res) => {
-  const { email, password } = req.body as { email: string; password: string };
-  if (!email?.trim() || !password) {
-    res.status(400).json({ error: "Email and password are required" });
+  const { email, password, crNumber } = req.body as { email?: string; password: string; crNumber?: string };
+  const hasCr    = !!crNumber?.trim();
+  const hasEmail = !!email?.trim();
+  if ((!hasCr && !hasEmail) || !password) {
+    res.status(400).json({ error: "Credentials and password are required" });
     return;
   }
   try {
-    const [user] = await db.select().from(usersTable)
-      .where(eq(usersTable.email, email.toLowerCase().trim())).limit(1);
-    if (!user) { res.status(401).json({ error: "Invalid email or password" }); return; }
+    const [user] = hasCr
+      ? await db.select().from(usersTable).where(eq(usersTable.crNumber, crNumber!.trim())).limit(1)
+      : await db.select().from(usersTable).where(eq(usersTable.email, email!.toLowerCase().trim())).limit(1);
+    if (!user) { res.status(401).json({ error: "Invalid credentials or password" }); return; }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) { res.status(401).json({ error: "Invalid email or password" }); return; }
+    if (!valid) { res.status(401).json({ error: "Invalid credentials or password" }); return; }
 
     logger.info({ userId: user.id, email: user.email }, "User logged in");
     res.json({

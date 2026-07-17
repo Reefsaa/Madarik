@@ -87,11 +87,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ── login ────────────────────────────────────────────────────────────────
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, crNumber?: string) => {
     let serverUser: User | null = null;
 
     try {
-      const resp = await apiPost('/auth/login', { email, password });
+      const body = crNumber ? { crNumber, password } : { email, password };
+      const resp = await apiPost('/auth/login', body);
       const data = await resp.json();
 
       if (!resp.ok) {

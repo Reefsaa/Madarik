@@ -24,6 +24,7 @@ const translations = {
     // Login
     loginTitle: 'Log in',
     loginUserPlaceholder: 'Username or ID',
+    loginCrPlaceholder: 'Commercial Registration No.',
     loginPassPlaceholder: 'Password',
     loginRemember: 'Remember me',
     loginBtn: 'Log in',
@@ -527,6 +528,7 @@ const translations = {
     // Login
     loginTitle: 'تسجيل الدخول',
     loginUserPlaceholder: 'اسم المستخدم أو الهوية',
+    loginCrPlaceholder: 'رقم السجل التجاري',
     loginPassPlaceholder: 'كلمة المرور',
     loginRemember: 'تذكرني',
     loginBtn: 'دخول',
