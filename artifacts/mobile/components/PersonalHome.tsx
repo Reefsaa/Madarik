@@ -5,6 +5,7 @@ import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View }
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const C = {
@@ -33,8 +34,9 @@ export default function PersonalHome() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { setMode } = useAppMode();
+  const { t, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const firstName = user?.name?.split(' ')[0] || 'Noura';
+  const firstName = user?.name?.split(' ')[0] || 'there';
 
   return (
     <ScrollView
@@ -44,244 +46,144 @@ export default function PersonalHome() {
     >
       {/* ── Welcome Header ─────────────────────────────────────────────── */}
       <View style={[styles.header, { paddingTop: topPad + 10 }]}>
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
           {/* Logo */}
           <Image source={LOGO} style={styles.headerLogo} resizeMode="contain" />
 
-          {/* Avatar + name */}
-          <View style={styles.userRow}>
-            <View style={styles.avatarWrap}>
-              <Text style={styles.avatarText}>{firstName[0]}</Text>
-            </View>
-            <View>
-              <Text style={styles.welcomeBack}>Welcome back</Text>
-              <Text style={styles.userName}>{firstName}</Text>
-            </View>
+          {/* Greeting */}
+          <View style={[styles.greetWrap, isRTL && { alignItems: 'flex-end' }]}>
+            <Text style={styles.goodMorning}>{t('homeGoodMorning')}</Text>
+            <Text style={styles.userName}>{t('homeWelcomeBack')} {firstName}</Text>
           </View>
 
-          {/* Actions: Notification bell → /notifications, swap mode */}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={() => router.push('/notifications')}
-            >
-              <Ionicons name="notifications-outline" size={17} color="#374151" />
-              {/* Unread badge */}
-              <View style={styles.notifBadge} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => setMode('business')}>
-              <Ionicons name="swap-horizontal-outline" size={17} color="#374151" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <Text style={styles.subtitle}>Let's make smartest investment</Text>
-      </View>
-
-      {/* ── Today's AI Insight ──────────────────────────────────────────── */}
-      <View style={styles.insightSection}>
-        <LinearGradient colors={['#1A237E', '#1e40af', '#312e81']} style={styles.insightCard}>
-          <Text style={styles.insightLabel}>TODAY'S AI INSIGHT</Text>
-          <Text style={styles.insightBody}>Your investment behavior is stable.</Text>
-          <View style={styles.insightMeta}>
-            <View>
-              <Text style={styles.insightMetaLabel}>Risk Profile</Text>
-              <Text style={styles.insightMetaValue}>Moderate</Text>
-            </View>
-            <View style={styles.insightDivider} />
-            <View>
-              <Text style={styles.insightMetaLabel}>Confidence Score</Text>
-              <Text style={styles.insightMetaValue}>84%</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.viewBtn} onPress={() => router.push('/(tabs)/insights')}>
-            <Text style={styles.viewBtnText}>View Analysis →</Text>
+          {/* Bell */}
+          <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/notifications')}>
+            <Ionicons name="notifications-outline" size={20} color="rgba(255,255,255,0.8)" />
           </TouchableOpacity>
-        </LinearGradient>
-        {/* Page-indicator dots */}
-        <View style={styles.dotsRow}>
-          <View style={[styles.dotActive]} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
         </View>
       </View>
 
-      {/* ── Dark section ────────────────────────────────────────────────── */}
-      <LinearGradient colors={['#f9fafb', C.dark]} style={{ height: 18 }} />
-      <View style={styles.darkSection}>
-
-        {/* Balance card carousel */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingRight: 14 }}
-          style={{ marginBottom: 16 }}
-        >
-          {CARDS.map((c) => (
-            <LinearGradient key={c.num} colors={c.gradient} style={styles.payCard}>
-              <View style={styles.mastercardIcons}>
-                <View style={[styles.mcCircle, { backgroundColor: '#c7d2fe', marginRight: -8 }]} />
-                <View style={[styles.mcCircle, { backgroundColor: '#818cf8' }]} />
-              </View>
-              <Text style={styles.cardBalLabel}>Balance</Text>
-              <Text style={styles.cardBal}>{c.bal} ﷼</Text>
-              <Text style={styles.cardNumLabel}>Card number</Text>
-              <View style={styles.cardNumRow}>
-                <Text style={styles.cardNum}>{c.num}</Text>
-                <Ionicons name="eye-outline" size={12} color="rgba(255,255,255,0.6)" />
-              </View>
-            </LinearGradient>
-          ))}
-        </ScrollView>
-
-        {/* ── Three-column behavioral metrics ── */}
-        <View style={styles.metricsRow}>
-          {/* Portfolio overview */}
-          <TouchableOpacity style={styles.metricItem} onPress={() => router.push('/(tabs)/insights')} activeOpacity={0.8}>
-            <View style={styles.metricCircle}>
-              <Ionicons name="trending-up-outline" size={14} color={C.green} />
-              <Text style={styles.metricPct}>+3.2%</Text>
-            </View>
-            <Text style={styles.metricLabel}>Portfolio{'\n'}overview</Text>
-          </TouchableOpacity>
-
-          {/* Behavioral score – centre/prominent */}
-          <TouchableOpacity style={styles.metricItemMain} onPress={() => router.push('/behavioral-assessment')} activeOpacity={0.8}>
-            <View style={styles.metricCircleMain}>
-              <Text style={styles.behavScore}>87</Text>
-            </View>
-            <Text style={[styles.metricLabel, { color: '#c7d2fe' }]}>Behavioral{'\n'}Score</Text>
-          </TouchableOpacity>
-
-          {/* Emotion detection */}
-          <TouchableOpacity style={styles.metricItem} onPress={() => router.push('/(tabs)/ai')} activeOpacity={0.8}>
-            <View style={styles.metricCircle}>
-              <Ionicons name="radio-button-on-outline" size={16} color={C.purple} />
-            </View>
-            <Text style={styles.metricLabel}>Emotion{'\n'}Detection</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ── Recent Activities ── */}
-        <View style={styles.recentHeader}>
-          <View>
-            <Text style={styles.recentTitle}>Recent Activities</Text>
-            <Text style={styles.recentDate}>Monday 22/06/26</Text>
+      {/* ── Balance Card ───────────────────────────────────────────────── */}
+      <LinearGradient colors={[C.midnight, C.purple]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.balanceCard}>
+        <Text style={styles.balanceLabel}>{t('homeBalance')}</Text>
+        <Text style={styles.balanceAmount}>SAR 8,650.00</Text>
+        <View style={[styles.balanceRow, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={styles.balanceStat}>
+            <Ionicons name="trending-up" size={12} color={C.green} />
+            <Text style={[styles.balanceStatText, { color: C.green }]}> +3.2% {t('homePortfolio')}</Text>
           </View>
-          <TouchableOpacity><Text style={styles.seeAll}>See all &gt;</Text></TouchableOpacity>
-        </View>
-
-        {TRANSACTIONS.map((t) => (
-          <View key={t.id} style={styles.txRow}>
-            {/* Directional icon: ↙ for credit / ↗ for debit */}
-            <View style={[styles.txIconWrap, { backgroundColor: t.positive ? '#d1fae5' : '#fee2e2' }]}>
-              <Ionicons
-                name={t.positive ? 'arrow-down-outline' : 'arrow-up-outline'}
-                size={14}
-                color={t.positive ? C.green : C.red}
-              />
-            </View>
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.txName}>{t.name}</Text>
-              <Text style={styles.txSub}>{t.sub}</Text>
-            </View>
-            <Text style={[styles.txAmount, { color: t.positive ? C.green : C.red }]}>
-              {t.amount} ﷼
-            </Text>
+          <View style={styles.balanceStat}>
+            <Ionicons name="analytics-outline" size={12} color="#c7d2fe" />
+            <Text style={styles.balanceStatText}> {t('homeScore')}: 87</Text>
           </View>
+        </View>
+      </LinearGradient>
+
+      {/* ── Quick actions ─────────────────────────────────────────────── */}
+      <View style={styles.quickRow}>
+        {[
+          { icon: 'trending-up-outline' as const, label: t('homeInvest') },
+          { icon: 'wallet-outline' as const,      label: t('homeSavings') },
+          { icon: 'card-outline' as const,         label: t('homeCards') },
+          { icon: 'bar-chart-outline' as const,    label: t('homeScore') },
+        ].map(q => (
+          <TouchableOpacity key={q.label} style={styles.quickItem} activeOpacity={0.8}>
+            <View style={styles.quickIcon}>
+              <Ionicons name={q.icon} size={18} color={C.midnight} />
+            </View>
+            <Text style={styles.quickLabel} numberOfLines={1}>{q.label}</Text>
+          </TouchableOpacity>
         ))}
-
-        {/* ── Quick actions grid ── */}
-        <View style={styles.quickGrid}>
-          {[
-            { icon: 'analytics-outline'         as const, label: 'Behavioral\nAssessment', route: '/behavioral-assessment' },
-            { icon: 'chatbubble-ellipses-outline' as const, label: 'Ask\nModrik',           route: '/(tabs)/ai'             },
-            { icon: 'trending-up-outline'        as const, label: 'Smart\nInsights',        route: '/(tabs)/insights'       },
-            { icon: 'document-text-outline'      as const, label: 'AI\nReport',             route: '/ai-report'             },
-          ].map((q) => (
-            <TouchableOpacity
-              key={q.label}
-              style={styles.quickBtn}
-              onPress={() => router.push(q.route as any)}
-              activeOpacity={0.85}
-            >
-              <Ionicons name={q.icon} size={17} color={C.purple} />
-              <Text style={styles.quickBtnText}>{q.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
       </View>
+
+      {/* ── Cards ─────────────────────────────────────────────────────── */}
+      <View style={[styles.sectionHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+        <Text style={styles.sectionTitle}>{t('homeCards')}</Text>
+        <TouchableOpacity><Text style={styles.sectionLink}>{t('homeViewAll')}</Text></TouchableOpacity>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
+        {CARDS.map((c, i) => (
+          <LinearGradient key={i} colors={c.gradient} style={styles.card}>
+            <Text style={styles.cardBal}>SAR {c.bal}</Text>
+            <Text style={styles.cardNum}>{c.num}</Text>
+            <View style={[styles.cardBottom, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Text style={styles.cardLabel}>{t('homeBalance')}</Text>
+              <Ionicons name="wifi-outline" size={18} color="rgba(255,255,255,0.6)" />
+            </View>
+          </LinearGradient>
+        ))}
+      </ScrollView>
+
+      {/* ── Transactions ──────────────────────────────────────────────── */}
+      <View style={[styles.sectionHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+        <Text style={styles.sectionTitle}>{t('homeRecentTx')}</Text>
+        <TouchableOpacity><Text style={styles.sectionLink}>{t('homeViewAll')}</Text></TouchableOpacity>
+      </View>
+      <View style={styles.txList}>
+        {TRANSACTIONS.map(tx => (
+          <TouchableOpacity key={tx.id} style={[styles.txRow, isRTL && { flexDirection: 'row-reverse' }]} activeOpacity={0.8}>
+            <View style={styles.txIcon}>
+              <Ionicons name={tx.positive ? 'arrow-down-outline' : 'arrow-up-outline'} size={16} color={tx.positive ? C.green : C.red} />
+            </View>
+            <View style={[styles.txInfo, isRTL && { alignItems: 'flex-end' }]}>
+              <Text style={styles.txName}>{tx.name}</Text>
+              <Text style={styles.txSub}>{tx.sub}</Text>
+            </View>
+            <Text style={[styles.txAmount, { color: tx.positive ? C.green : C.red }]}>{tx.amount}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* ── Switch mode ──────────────────────────────────────────────── */}
+      <TouchableOpacity style={styles.switchBtn} onPress={() => setMode('business')} activeOpacity={0.85}>
+        <Ionicons name="swap-horizontal-outline" size={16} color="#4f46e5" />
+        <Text style={styles.switchText}>{t('settingsSwitchBusiness')}</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f9fafb' },
+  screen: { flex: 1, backgroundColor: '#F5F6FA' },
 
-  // Header
-  header:      { backgroundColor: '#f9fafb', paddingHorizontal: 16, paddingBottom: 12 },
-  headerRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 8 },
-  headerLogo:  { width: 44, height: 28 },
-  userRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
-  avatarWrap:  { width: 36, height: 36, borderRadius: 18, backgroundColor: '#6C5CE7', alignItems: 'center', justifyContent: 'center' },
-  avatarText:  { color: '#fff', fontSize: 13, fontWeight: '700', fontFamily: 'Inter_700Bold' },
-  welcomeBack: { fontSize: 9,  color: '#9ca3af', fontFamily: 'Inter_400Regular' },
-  userName:    { fontSize: 14, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold' },
-  actions:     { flexDirection: 'row', gap: 6 },
-  iconBtn:     { width: 32, height: 32, borderRadius: 10, backgroundColor: '#F5F6FA', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  notifBadge:  { position: 'absolute', top: 5, right: 6, width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#D63031', borderWidth: 1.5, borderColor: '#f9fafb' },
-  subtitle:    { fontSize: 11, color: '#6b7280', fontFamily: 'Inter_400Regular' },
+  header: { backgroundColor: '#0f172a', paddingHorizontal: 16, paddingBottom: 20 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerLogo: { width: 36, height: 36 },
+  greetWrap: { flex: 1 },
+  goodMorning: { fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: 1, fontFamily: 'Inter_500Medium' },
+  userName: { fontSize: 15, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
+  bellBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
 
-  // AI Insight card
-  insightSection:    { paddingHorizontal: 16, marginBottom: 4 },
-  insightCard:       { borderRadius: 16, padding: 16 },
-  insightLabel:      { fontSize: 9, fontWeight: '700', color: '#a5b4fc', letterSpacing: 1, fontFamily: 'Inter_700Bold', marginBottom: 6 },
-  insightBody:       { fontSize: 15, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 14, lineHeight: 20 },
-  insightMeta:       { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 14 },
-  insightMetaLabel:  { fontSize: 9,  color: '#94a3b8', fontFamily: 'Inter_400Regular' },
-  insightMetaValue:  { fontSize: 13, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold', marginTop: 2 },
-  insightDivider:    { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.15)' },
-  viewBtn:           { alignSelf: 'flex-end', backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7 },
-  viewBtnText:       { fontSize: 11, color: '#fff', fontWeight: '700', fontFamily: 'Inter_700Bold' },
-  dotsRow:           { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 10 },
-  dotActive:         { width: 18, height: 7, borderRadius: 3.5, backgroundColor: '#6C5CE7' },
-  dot:               { width: 7,  height: 7, borderRadius: 3.5, backgroundColor: '#d1d5db' },
+  balanceCard: { marginHorizontal: 16, marginTop: 16, borderRadius: 20, padding: 20 },
+  balanceLabel: { fontSize: 12, color: 'rgba(255,255,255,0.65)', fontFamily: 'Inter_400Regular', marginBottom: 4 },
+  balanceAmount: { fontSize: 30, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 12 },
+  balanceRow: { flexDirection: 'row', gap: 16 },
+  balanceStat: { flexDirection: 'row', alignItems: 'center' },
+  balanceStatText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', fontFamily: 'Inter_400Regular' },
 
-  // Dark section
-  darkSection: { backgroundColor: '#0f172a', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 },
+  quickRow: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 18, gap: 10 },
+  quickItem: { flex: 1, alignItems: 'center', gap: 6 },
+  quickIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
+  quickLabel: { fontSize: 10, color: '#374151', fontFamily: 'Inter_500Medium', textAlign: 'center' },
 
-  // Balance cards
-  payCard:       { borderRadius: 16, padding: 14, width: 196, marginRight: 10 },
-  mastercardIcons: { flexDirection: 'row', position: 'absolute', top: 14, right: 14 },
-  mcCircle:      { width: 18, height: 18, borderRadius: 9, opacity: 0.75 },
-  cardBalLabel:  { fontSize: 9, color: 'rgba(255,255,255,0.65)', fontFamily: 'Inter_400Regular' },
-  cardBal:       { fontSize: 20, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold', marginTop: 2 },
-  cardNumLabel:  { fontSize: 8, color: 'rgba(255,255,255,0.45)', marginTop: 22, fontFamily: 'Inter_400Regular' },
-  cardNumRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 3 },
-  cardNum:       { fontSize: 9, color: 'rgba(255,255,255,0.85)', fontFamily: 'Inter_500Medium', letterSpacing: 0.5 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: 22, marginBottom: 10 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold' },
+  sectionLink: { fontSize: 12, color: '#4f46e5', fontFamily: 'Inter_500Medium' },
 
-  // Behavioral metrics row
-  metricsRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 14, borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.09)', marginBottom: 20 },
-  metricItem:       { alignItems: 'center', flex: 1 },
-  metricItemMain:   { alignItems: 'center', flex: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.09)' },
-  metricCircle:     { width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: '#6C5CE7', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  metricCircleMain: { width: 56, height: 56, borderRadius: 28, borderWidth: 3, borderColor: '#6C5CE7', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  metricPct:        { fontSize: 7, color: '#00B894', fontFamily: 'Inter_600SemiBold', marginTop: 1 },
-  behavScore:       { fontSize: 22, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold' },
-  metricLabel:      { fontSize: 8, color: '#64748b', textAlign: 'center', lineHeight: 12, fontFamily: 'Inter_400Regular' },
+  card: { width: 200, borderRadius: 18, padding: 18, height: 120, justifyContent: 'space-between' },
+  cardBal: { fontSize: 20, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold' },
+  cardNum: { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: 'Inter_400Regular' },
+  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardLabel: { fontSize: 10, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter_400Regular' },
 
-  // Recent activities
-  recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 },
-  recentTitle:  { fontSize: 13, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
-  recentDate:   { fontSize: 9, color: '#64748b', marginTop: 2, fontFamily: 'Inter_400Regular' },
-  seeAll:       { fontSize: 11, color: '#818cf8', fontFamily: 'Inter_600SemiBold' },
-  txRow:        { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 8 },
-  txIconWrap:   { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  txName:       { fontSize: 12, fontWeight: '600', color: '#111827', fontFamily: 'Inter_600SemiBold' },
-  txSub:        { fontSize: 9, color: '#9ca3af', marginTop: 1, fontFamily: 'Inter_400Regular' },
-  txAmount:     { fontSize: 13, fontWeight: '700', fontFamily: 'Inter_700Bold' },
+  txList: { backgroundColor: '#fff', borderRadius: 16, marginHorizontal: 16, overflow: 'hidden' },
+  txRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
+  txIcon: { width: 36, height: 36, borderRadius: 12, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  txInfo: { flex: 1 },
+  txName: { fontSize: 14, fontWeight: '600', color: '#111827', fontFamily: 'Inter_600SemiBold' },
+  txSub: { fontSize: 11, color: '#9ca3af', fontFamily: 'Inter_400Regular' },
+  txAmount: { fontSize: 14, fontWeight: '700', fontFamily: 'Inter_700Bold' },
 
-  // Quick actions
-  quickGrid:    { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 10, marginTop: 16 },
-  quickBtn:     { width: '47%', backgroundColor: '#1e293b', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)' },
-  quickBtnText: { fontSize: 10, fontWeight: '600', color: '#cbd5e1', textAlign: 'center', marginTop: 5, fontFamily: 'Inter_600SemiBold' },
+  switchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 16, marginTop: 16, paddingVertical: 13, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: '#e0e7ff' },
+  switchText: { fontSize: 14, color: '#4f46e5', fontFamily: 'Inter_600SemiBold' },
 });

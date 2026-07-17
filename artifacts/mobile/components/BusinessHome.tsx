@@ -5,6 +5,7 @@ import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View }
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const LOGO = require('@/assets/images/madarik-logo.png');
 
@@ -24,6 +25,7 @@ export default function BusinessHome() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { setMode } = useAppMode();
+  const { t, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const firstName = user?.name?.split(' ')[0] || 'there';
 
@@ -31,207 +33,146 @@ export default function BusinessHome() {
     <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
       {/* Dark header */}
       <LinearGradient colors={['#04071a', '#0a0e27', '#130d3a', '#1a1060']} style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
           {/* Logo in top-left */}
           <Image source={LOGO} style={styles.headerLogo} resizeMode="contain" />
-          <View style={styles.headerCenter}>
-            <Text style={styles.goodMorning}>GOOD MORNING</Text>
-            <Text style={styles.companyName}>{user?.company || 'Madarik Holdings'}</Text>
-            <Text style={styles.companyType}>business banking</Text>
+          <View style={[styles.headerCenter, isRTL && { alignItems: 'flex-end' }]}>
+            <Text style={styles.goodMorning}>{t('homeGoodMorning')}</Text>
+            <Text style={styles.companyName}>{user?.company || t('businessMode')}</Text>
+            <Text style={styles.companyType}>{t('homeHealthScore').toLowerCase()}</Text>
           </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/ai-alerts')}>
-              <Ionicons name="notifications-outline" size={17} color="#c7d2fe" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => setMode('personal')}>
-              <Ionicons name="swap-horizontal-outline" size={17} color="#c7d2fe" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Business balance card */}
-        <LinearGradient colors={['#4f46e5', '#6366f1', '#818cf8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.balanceCard}>
-          <Text style={styles.balCardLabel}>business balance : SAR 845,000</Text>
-          <Text style={styles.balCardItem}>Available Cash : SAR 420,000</Text>
-          <Text style={styles.balCardItem}>monthly Revenue : 310,000</Text>
-          <Text style={styles.balCardItem}>Monthly Expenses : 245,000</Text>
-          <TouchableOpacity style={styles.viewAnalysisBtn} onPress={() => router.push('/(tabs)/insights')}>
-            <Text style={styles.viewAnalysisText}>View Analysis</Text>
+          <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
+            <Ionicons name="notifications-outline" size={20} color="rgba(255,255,255,0.8)" />
+            <View style={styles.notifDot} />
           </TouchableOpacity>
-        </LinearGradient>
-
-        {/* Card carousel */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll} contentContainerStyle={{ paddingRight: 16 }}>
-          {[{ bal: '8,500', num: '2412 7512 3412 3456' }, { bal: '150', num: '6542 3xxx xxxx xxxx' }].map((c) => (
-            <View key={c.num} style={styles.payCard}>
-              <Text style={styles.payCardBalLabel}>Balance</Text>
-              <Text style={styles.payCardBal}>{c.bal} ﷼</Text>
-              <View style={styles.mastercard}>
-                <View style={[styles.mcCircle, { marginRight: -8 }]} />
-                <View style={styles.mcCircle} />
-              </View>
-              <Text style={styles.payCardNumLabel}>Card number</Text>
-              <View style={styles.cardNumRow}>
-                <Text style={styles.payCardNum}>{c.num}</Text>
-                <Ionicons name="eye-outline" size={13} color="#6b7280" />
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Score badges */}
-        <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgePlus}>+</Text>
-            <Text style={styles.badgeSub}>3.2%</Text>
-            <Text style={styles.badgeLabel}>Portfolio{'\n'}overview</Text>
-          </View>
-          <View style={[styles.badge, styles.badgeCenter]}>
-            <Text style={styles.behavScore}>87</Text>
-            <Text style={styles.behavLabel}>behavioral{'\n'}Score</Text>
-          </View>
-          <View style={styles.badge}>
-            <Ionicons name="radio-button-on-outline" size={22} color="#a5b4fc" />
-            <Text style={styles.badgeLabel}>Emotion{'\n'}Detection</Text>
-          </View>
         </View>
+
+        <Text style={[styles.welcomeText, isRTL && { textAlign: 'right' }]}>
+          {t('homeWelcomeBack')} {firstName} 👋
+        </Text>
+
+        {/* Balance card */}
+        <LinearGradient colors={['#a5b4fc', '#818cf8', '#6366f1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.balanceCard}>
+          <View style={[styles.balanceHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Text style={styles.balanceCardLabel}>{t('homeTotalBal')}</Text>
+            <View style={styles.trendCircle}>
+              <Ionicons name="trending-up" size={14} color="#4f46e5" />
+            </View>
+          </View>
+          <Text style={[styles.balanceAmount, isRTL && { textAlign: 'right' }]}>SAR 1,284,500</Text>
+          <View style={[styles.balanceStats, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View style={styles.balanceStat}>
+              <Text style={styles.balanceStatLabel}>{t('homeRevenue')}</Text>
+              <Text style={[styles.balanceStatValue, { color: '#22c55e' }]}>+SAR 124K</Text>
+            </View>
+            <View style={styles.balanceDivider} />
+            <View style={styles.balanceStat}>
+              <Text style={styles.balanceStatLabel}>{t('homeExpenses')}</Text>
+              <Text style={[styles.balanceStatValue, { color: '#ef4444' }]}>-SAR 87K</Text>
+            </View>
+            <View style={styles.balanceDivider} />
+            <View style={styles.balanceStat}>
+              <Text style={styles.balanceStatLabel}>{t('homeCashflow')}</Text>
+              <Text style={[styles.balanceStatValue, { color: '#4f46e5' }]}>SAR 37K</Text>
+            </View>
+          </View>
+        </LinearGradient>
       </LinearGradient>
 
-      {/* White content section */}
-      <View style={styles.whiteSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Activities</Text>
-          <TouchableOpacity><Text style={styles.seeAll}>See all &gt;</Text></TouchableOpacity>
+      {/* Upcoming Payments */}
+      <View style={styles.section}>
+        <View style={[styles.sectionHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+          <Text style={styles.sectionTitle}>{t('homePayments')}</Text>
+          <TouchableOpacity><Text style={styles.sectionLink}>{t('homeViewAll')}</Text></TouchableOpacity>
         </View>
-        <Text style={styles.dateLabel}>Monday 22/06/26</Text>
-        {ACTIVITY.map((a) => (
-          <View key={a.text} style={styles.actRow}>
-            <View style={styles.actIcon}><Ionicons name="time-outline" size={15} color="#6b7280" /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.actText}>{a.text}</Text>
-              <Text style={styles.actTime}>{a.time}</Text>
+        {PAYMENTS.map((p, i) => (
+          <TouchableOpacity key={i} style={[styles.paymentRow, isRTL && { flexDirection: 'row-reverse' }]} activeOpacity={0.8}>
+            <View style={[styles.paymentIcon, p.urgent && styles.paymentIconUrgent]}>
+              <Ionicons name="calendar-outline" size={16} color={p.urgent ? '#ef4444' : '#4f46e5'} />
             </View>
-          </View>
-        ))}
-
-        <LinearGradient colors={['#9333ea', '#4f46e5']} style={styles.insightCard}>
-          <View style={styles.insightHeader}>
-            <Ionicons name="sparkles-outline" size={13} color="#fff" />
-            <Text style={styles.insightTitle}>Today's AI Insight</Text>
-            <View style={styles.liveTag}><Text style={styles.liveTagText}>REAL-TIME</Text></View>
-          </View>
-          <Text style={styles.insightBody}>
-            Expected surplus of SAR 45,000 identified for next month. Consider moving to a higher-yield account to optimize working capital.
-          </Text>
-          <TouchableOpacity style={styles.insightBtn} onPress={() => router.push('/ai-recommendations')}>
-            <Text style={styles.insightBtnText}>View AI Analysis</Text>
+            <View style={[styles.paymentInfo, isRTL && { alignItems: 'flex-end' }]}>
+              <Text style={styles.paymentName}>{p.name}</Text>
+              <Text style={[styles.paymentDue, p.urgent && { color: '#ef4444' }]}>{p.due}</Text>
+            </View>
+            <Text style={[styles.paymentAmount, p.urgent && { color: '#ef4444' }]}>{p.amount}</Text>
           </TouchableOpacity>
-        </LinearGradient>
+        ))}
+      </View>
 
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>Upcoming Payments</Text>
-            <TouchableOpacity onPress={() => router.push('/upcoming-payments')}>
-              <Text style={styles.linkText}>View All</Text>
-            </TouchableOpacity>
-          </View>
-          {PAYMENTS.map((p) => (
-            <View key={p.name} style={styles.paymentRow}>
-              <View style={styles.paymentIconWrap}><Ionicons name="document-text-outline" size={14} color="#6b7280" /></View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.paymentName}>{p.name}</Text>
-                <Text style={[styles.paymentDue, p.urgent && { color: '#ef4444' }]}>{p.due}</Text>
-              </View>
-              <Text style={styles.paymentAmount}>{p.amount}</Text>
-            </View>
-          ))}
+      {/* Recent Activity */}
+      <View style={styles.section}>
+        <View style={[styles.sectionHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+          <Text style={styles.sectionTitle}>{t('homeActivity')}</Text>
+          <TouchableOpacity><Text style={styles.sectionLink}>{t('homeViewAll')}</Text></TouchableOpacity>
         </View>
-
-        <View style={styles.quickGrid}>
-          {[
-            { icon: 'business-outline' as const, label: 'Apply for Financing', route: '/loan-review' },
-            { icon: 'document-text-outline' as const, label: 'AI Financial Report', route: '/ai-report' },
-            { icon: 'pie-chart-outline' as const, label: 'View Analytics', route: '/(tabs)/insights' },
-            { icon: 'chatbubble-ellipses-outline' as const, label: 'Ask Modrik', route: '/(tabs)/ai' },
-          ].map((q) => (
-            <TouchableOpacity key={q.label} style={styles.quickBtn} onPress={() => router.push(q.route as any)} activeOpacity={0.85}>
-              <Ionicons name={q.icon} size={18} color="#4f46e5" />
-              <Text style={styles.quickBtnText}>{q.label}</Text>
-            </TouchableOpacity>
+        <View style={styles.activityCard}>
+          {ACTIVITY.map((a, i) => (
+            <View key={i} style={[styles.activityRow, isRTL && { flexDirection: 'row-reverse' }, i < ACTIVITY.length - 1 && styles.activityBorder]}>
+              <View style={styles.activityDot} />
+              <View style={[styles.activityInfo, isRTL && { alignItems: 'flex-end' }]}>
+                <Text style={styles.activityText}>{a.text}</Text>
+                <Text style={styles.activityTime}>{a.time}</Text>
+              </View>
+            </View>
           ))}
         </View>
       </View>
+
+      {/* Switch to Personal */}
+      <TouchableOpacity style={styles.switchBtn} onPress={() => setMode('personal')} activeOpacity={0.85}>
+        <Ionicons name="swap-horizontal-outline" size={16} color="#4f46e5" />
+        <Text style={styles.switchText}>{t('settingsSwitchPersonal')}</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { paddingHorizontal: 14, paddingBottom: 16 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 8 },
-  headerLogo: { width: 52, height: 34 },
+
+  header: { paddingHorizontal: 16, paddingBottom: 24 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  headerLogo: { width: 36, height: 36, marginRight: 10 },
   headerCenter: { flex: 1 },
-  goodMorning: { fontSize: 8, color: '#94a3b8', letterSpacing: 1, fontFamily: 'Inter_400Regular' },
-  companyName: { fontSize: 12, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
-  companyType: { fontSize: 9, color: '#818cf8', fontFamily: 'Inter_400Regular' },
-  headerActions: { flexDirection: 'row', gap: 6 },
-  iconBtn: { width: 30, height: 30, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  goodMorning: { fontSize: 10, color: 'rgba(255,255,255,0.45)', letterSpacing: 1.2, fontFamily: 'Inter_500Medium' },
+  companyName: { fontSize: 14, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
+  companyType: { fontSize: 10, color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter_400Regular' },
+  notifBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  notifDot: { position: 'absolute', top: 7, right: 7, width: 7, height: 7, borderRadius: 4, backgroundColor: '#ef4444', borderWidth: 1, borderColor: '#0a0e27' },
+  welcomeText: { fontSize: 18, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 16 },
 
-  balanceCard: { borderRadius: 16, padding: 14, marginBottom: 14 },
-  balCardLabel: { fontSize: 12, fontWeight: '700', color: '#fff', fontFamily: 'Inter_600SemiBold', marginBottom: 8 },
-  balCardItem: { fontSize: 11, color: '#e0e7ff', fontFamily: 'Inter_400Regular', marginBottom: 2 },
-  viewAnalysisBtn: { alignSelf: 'flex-end', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5, marginTop: 8 },
-  viewAnalysisText: { fontSize: 11, color: '#fff', fontWeight: '600', fontFamily: 'Inter_600SemiBold' },
+  balanceCard: { borderRadius: 20, padding: 18 },
+  balanceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  balanceCardLabel: { fontSize: 12, color: '#312e81', fontFamily: 'Inter_500Medium' },
+  trendCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.6)', alignItems: 'center', justifyContent: 'center' },
+  balanceAmount: { fontSize: 26, fontWeight: '800', color: '#1e1b4b', fontFamily: 'Inter_700Bold', marginBottom: 14 },
+  balanceStats: { flexDirection: 'row', alignItems: 'center' },
+  balanceStat: { flex: 1, alignItems: 'center' },
+  balanceStatLabel: { fontSize: 10, color: '#4338ca', fontFamily: 'Inter_400Regular', marginBottom: 2 },
+  balanceStatValue: { fontSize: 12, fontWeight: '700', fontFamily: 'Inter_700Bold' },
+  balanceDivider: { width: 1, height: 28, backgroundColor: 'rgba(99,102,241,0.2)' },
 
-  cardScroll: { marginBottom: 14 },
-  payCard: { backgroundColor: '#fff', borderRadius: 14, padding: 12, width: 190, marginRight: 10, borderWidth: 1, borderColor: '#f3f4f6' },
-  payCardBalLabel: { fontSize: 9, color: '#9ca3af', fontFamily: 'Inter_400Regular' },
-  payCardBal: { fontSize: 18, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold', marginTop: 2 },
-  mastercard: { flexDirection: 'row', position: 'absolute', top: 12, right: 12 },
-  mcCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#9ca3af', opacity: 0.6 },
-  payCardNumLabel: { fontSize: 8, color: '#9ca3af', marginTop: 18, fontFamily: 'Inter_400Regular' },
-  cardNumRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
-  payCardNum: { fontSize: 10, color: '#374151', fontFamily: 'Inter_500Medium' },
+  section: { paddingHorizontal: 16, marginTop: 20 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold' },
+  sectionLink: { fontSize: 12, color: '#4f46e5', fontFamily: 'Inter_500Medium' },
 
-  badgeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 6 },
-  badge: { alignItems: 'center', flex: 1 },
-  badgePlus: { fontSize: 16, fontWeight: '700', color: '#a5b4fc', fontFamily: 'Inter_700Bold' },
-  badgeSub: { fontSize: 11, color: '#a5b4fc', fontFamily: 'Inter_600SemiBold' },
-  badgeCenter: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingVertical: 4 },
-  behavScore: { fontSize: 26, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold' },
-  behavLabel: { fontSize: 9, color: '#94a3b8', textAlign: 'center', fontFamily: 'Inter_400Regular', marginTop: 2 },
-  badgeLabel: { fontSize: 9, color: '#94a3b8', textAlign: 'center', fontFamily: 'Inter_400Regular', marginTop: 4 },
+  paymentRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#f3f4f6' },
+  paymentIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#eef2ff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  paymentIconUrgent: { backgroundColor: '#fef2f2' },
+  paymentInfo: { flex: 1 },
+  paymentName: { fontSize: 13, fontWeight: '600', color: '#111827', fontFamily: 'Inter_600SemiBold' },
+  paymentDue: { fontSize: 11, color: '#9ca3af', marginTop: 2, fontFamily: 'Inter_400Regular' },
+  paymentAmount: { fontSize: 13, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold' },
 
-  whiteSection: { backgroundColor: '#f9fafb', padding: 14 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold' },
-  seeAll: { fontSize: 12, color: '#4f46e5', fontFamily: 'Inter_600SemiBold' },
-  dateLabel: { fontSize: 10, color: '#9ca3af', marginBottom: 10, fontFamily: 'Inter_400Regular' },
-  actRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 11, padding: 11, marginBottom: 7, borderWidth: 1, borderColor: '#f3f4f6' },
-  actIcon: { width: 30, height: 30, borderRadius: 8, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  actText: { fontSize: 12, color: '#111827', fontFamily: 'Inter_500Medium' },
-  actTime: { fontSize: 9, color: '#9ca3af', marginTop: 1, fontFamily: 'Inter_400Regular' },
+  activityCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
+  activityRow: { flexDirection: 'row', alignItems: 'center', padding: 14 },
+  activityBorder: { borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
+  activityDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#6366f1', marginRight: 12, flexShrink: 0 },
+  activityInfo: { flex: 1 },
+  activityText: { fontSize: 13, color: '#111827', fontFamily: 'Inter_500Medium' },
+  activityTime: { fontSize: 11, color: '#9ca3af', marginTop: 2, fontFamily: 'Inter_400Regular' },
 
-  insightCard: { borderRadius: 14, padding: 14, marginTop: 6, marginBottom: 10 },
-  insightHeader: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 7 },
-  insightTitle: { fontSize: 12, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold', flex: 1 },
-  liveTag: { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2 },
-  liveTagText: { fontSize: 7, color: '#fff', fontWeight: '700', fontFamily: 'Inter_700Bold' },
-  insightBody: { fontSize: 11, color: '#e0e7ff', lineHeight: 16, fontFamily: 'Inter_400Regular', marginBottom: 10 },
-  insightBtn: { backgroundColor: '#fff', borderRadius: 9, paddingVertical: 8, alignItems: 'center' },
-  insightBtnText: { fontSize: 11, fontWeight: '600', color: '#4338ca', fontFamily: 'Inter_600SemiBold' },
-
-  card: { backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#f3f4f6' },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  cardTitle: { fontSize: 13, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold' },
-  linkText: { fontSize: 11, fontWeight: '600', color: '#4f46e5', fontFamily: 'Inter_600SemiBold' },
-  paymentRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 9 },
-  paymentIconWrap: { width: 30, height: 30, borderRadius: 7, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' },
-  paymentName: { fontSize: 11, fontWeight: '600', color: '#111827', fontFamily: 'Inter_600SemiBold' },
-  paymentDue: { fontSize: 9, color: '#9ca3af', marginTop: 1, fontFamily: 'Inter_400Regular' },
-  paymentAmount: { fontSize: 11, fontWeight: '700', color: '#111827', fontFamily: 'Inter_700Bold' },
-
-  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 10 },
-  quickBtn: { width: '47%', backgroundColor: '#fff', borderRadius: 13, borderWidth: 1, borderColor: '#f3f4f6', paddingVertical: 13, alignItems: 'center' },
-  quickBtnText: { fontSize: 10, fontWeight: '600', color: '#374151', textAlign: 'center', marginTop: 5, fontFamily: 'Inter_600SemiBold' },
+  switchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 16, marginTop: 16, paddingVertical: 13, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: '#e0e7ff' },
+  switchText: { fontSize: 14, color: '#4f46e5', fontFamily: 'Inter_600SemiBold' },
 });

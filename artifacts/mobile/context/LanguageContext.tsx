@@ -1,6 +1,8 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 export type Language = 'en' | 'ar';
+const LANG_KEY = 'madarik_lang_v1';
 
 const translations = {
   en: {
@@ -50,6 +52,60 @@ const translations = {
     // Modes
     businessMode: 'Business Mode',
     personalMode: 'Personal Mode',
+    // Settings — shared
+    settingsLanguage: 'Language',
+    settingsLanguageValue: 'English',
+    settingsNotifications: 'Notifications',
+    settingsLogout: 'Log out',
+    settingsSignOut: 'Sign Out',
+    settingsSwitchBusiness: 'Switch to Business Mode',
+    settingsSwitchPersonal: 'Switch to Personal Mode',
+    settingsReferral: 'Referral Code',
+    settingsVersion: 'Madarik v1.0.0',
+    settingsSupport: 'Support',
+    settingsHelp: 'Help',
+    // Settings — Personal
+    settingsPersonalInfo: 'Personal Information',
+    settingsCards: 'Cards Management',
+    settingsPrivacy: 'Privacy & Security',
+    settingsBehavioral: 'Behavioral Assessment',
+    settingsProfileTitle: 'Profile',
+    // Settings — Business
+    settingsAccount: 'Account',
+    settingsCompanyDetails: 'Company Details',
+    settingsPaymentMethods: 'Payment Methods',
+    settingsBilling: 'Billing & Invoices',
+    settingsPreferences: 'Preferences',
+    settingsCurrency: 'Currency',
+    settingsSecurity: 'Security',
+    settingsChangePassword: 'Change Password',
+    settingsBiometric: 'Biometric Login',
+    settingsTwoFactor: 'Two-Factor Auth',
+    // Home — Personal
+    homeGoodMorning: 'GOOD MORNING',
+    homeWelcomeBack: 'Welcome back,',
+    homeBalance: 'Total Balance',
+    homePortfolio: 'Portfolio',
+    homeRecentTx: 'Recent Transactions',
+    homeViewAll: 'View all',
+    homeInvest: 'Investments',
+    homeScore: 'Behavioral Score',
+    homeSavings: 'Savings',
+    homeCards: 'My Cards',
+    // Home — Business
+    homeRevenue: 'Revenue',
+    homeExpenses: 'Expenses',
+    homeCashflow: 'Cash Flow',
+    homePayments: 'Upcoming Payments',
+    homeActivity: 'Recent Activity',
+    homeTotalBal: 'Total Business Balance',
+    homeHealthScore: 'Health Score',
+    homeAccounts: 'Accounts',
+    homeAlerts: 'Alerts',
+    // AI
+    aiOnline: 'AI Analyst · Online',
+    aiTypePlaceholder: 'Ask Modrik anything...',
+    aiTypePlaceholderPersonal: 'Type a message, or ask Modrik about your assets...',
   },
   ar: {
     // Mode select
@@ -98,6 +154,60 @@ const translations = {
     // Modes
     businessMode: 'وضع الأعمال',
     personalMode: 'الوضع الشخصي',
+    // Settings — shared
+    settingsLanguage: 'اللغة',
+    settingsLanguageValue: 'العربية',
+    settingsNotifications: 'الإشعارات',
+    settingsLogout: 'تسجيل الخروج',
+    settingsSignOut: 'تسجيل الخروج',
+    settingsSwitchBusiness: 'التحويل إلى وضع الأعمال',
+    settingsSwitchPersonal: 'التحويل إلى الوضع الشخصي',
+    settingsReferral: 'رمز الإحالة',
+    settingsVersion: 'مدارك v1.0.0',
+    settingsSupport: 'الدعم الفني',
+    settingsHelp: 'المساعدة',
+    // Settings — Personal
+    settingsPersonalInfo: 'المعلومات الشخصية',
+    settingsCards: 'إدارة البطاقات',
+    settingsPrivacy: 'الخصوصية والأمان',
+    settingsBehavioral: 'التقييم السلوكي',
+    settingsProfileTitle: 'الملف الشخصي',
+    // Settings — Business
+    settingsAccount: 'الحساب',
+    settingsCompanyDetails: 'تفاصيل الشركة',
+    settingsPaymentMethods: 'طرق الدفع',
+    settingsBilling: 'الفواتير',
+    settingsPreferences: 'التفضيلات',
+    settingsCurrency: 'العملة',
+    settingsSecurity: 'الأمان',
+    settingsChangePassword: 'تغيير كلمة المرور',
+    settingsBiometric: 'تسجيل الدخول البيومتري',
+    settingsTwoFactor: 'المصادقة الثنائية',
+    // Home — Personal
+    homeGoodMorning: 'صباح الخير',
+    homeWelcomeBack: 'مرحباً بعودتك،',
+    homeBalance: 'الرصيد الإجمالي',
+    homePortfolio: 'المحفظة',
+    homeRecentTx: 'المعاملات الأخيرة',
+    homeViewAll: 'عرض الكل',
+    homeInvest: 'الاستثمارات',
+    homeScore: 'التقييم السلوكي',
+    homeSavings: 'المدخرات',
+    homeCards: 'بطاقاتي',
+    // Home — Business
+    homeRevenue: 'الإيرادات',
+    homeExpenses: 'المصروفات',
+    homeCashflow: 'التدفق النقدي',
+    homePayments: 'المدفوعات القادمة',
+    homeActivity: 'النشاط الأخير',
+    homeTotalBal: 'إجمالي رصيد الأعمال',
+    homeHealthScore: 'نقاط الصحة',
+    homeAccounts: 'الحسابات',
+    homeAlerts: 'التنبيهات',
+    // AI
+    aiOnline: 'محلل ذكي · متصل',
+    aiTypePlaceholder: 'اسأل مدرك أي شيء...',
+    aiTypePlaceholderPersonal: 'اكتب رسالة، أو اسأل مدرك عن أصولك...',
   },
 } as const;
 
@@ -115,8 +225,19 @@ const LanguageContext = createContext<LanguageContextType | null>(null);
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>('en');
 
+  // Load persisted language on mount
+  useEffect(() => {
+    AsyncStorage.getItem(LANG_KEY)
+      .then(val => { if (val === 'en' || val === 'ar') setLanguage(val); })
+      .catch(() => {});
+  }, []);
+
   const toggleLanguage = useCallback(() => {
-    setLanguage(l => (l === 'en' ? 'ar' : 'en'));
+    setLanguage(l => {
+      const next = l === 'en' ? 'ar' : 'en';
+      AsyncStorage.setItem(LANG_KEY, next).catch(() => {});
+      return next;
+    });
   }, []);
 
   const t = useCallback(

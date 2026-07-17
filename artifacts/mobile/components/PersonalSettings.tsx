@@ -5,22 +5,24 @@ import { Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const SUPPORT_EMAIL = 'madarik.amad@gmail.com';
 
-interface RowProps { icon: keyof typeof Ionicons.glyphMap; label: string; sub?: string; onPress?: () => void }
+interface RowProps { icon: keyof typeof Ionicons.glyphMap; label: string; sub?: string; value?: string; onPress?: () => void; isRTL?: boolean }
 
-function SettingRow({ icon, label, sub, onPress }: RowProps) {
+function SettingRow({ icon, label, sub, value, onPress, isRTL }: RowProps) {
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.row, isRTL && { flexDirection: 'row-reverse' }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.rowIcon}>
         <Ionicons name={icon} size={18} color="#1e40af" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        {sub ? <Text style={styles.rowSub}>{sub}</Text> : null}
+        <Text style={[styles.rowLabel, isRTL && { textAlign: 'right' }]}>{label}</Text>
+        {sub ? <Text style={[styles.rowSub, isRTL && { textAlign: 'right' }]}>{sub}</Text> : null}
       </View>
-      <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+      {value ? <Text style={styles.rowValue}>{value}</Text> : null}
+      <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#d1d5db" />
     </TouchableOpacity>
   );
 }
@@ -29,11 +31,13 @@ export default function PersonalSettings() {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { setMode, clearMode } = useAppMode();
+  const { t, toggleLanguage, language, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const firstName = user?.name?.split(' ')[0] || 'Noura';
-  const lastName = user?.name?.split(' ').slice(1).join(' ') || 'Alqahtani';
-  const username = user?.email?.split('@')[0] || 'norahq_';
-  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'NA';
+
+  const firstName = user?.name?.split(' ')[0] || '';
+  const lastName = user?.name?.split(' ').slice(1).join(' ') || '';
+  const username = user?.email?.split('@')[0] || '';
+  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
   const handleLogout = async () => {
     await clearMode();
@@ -69,15 +73,31 @@ export default function PersonalSettings() {
 
       {/* Settings list */}
       <View style={styles.listSection}>
-        <SettingRow icon="person-outline" label="Personal Information" />
+        <SettingRow isRTL={isRTL} icon="person-outline" label={t('settingsPersonalInfo')} />
         <View style={styles.divider} />
-        <SettingRow icon="card-outline" label="Cards Management" />
+        <SettingRow isRTL={isRTL} icon="card-outline" label={t('settingsCards')} />
         <View style={styles.divider} />
-        <SettingRow icon="shield-outline" label="Privacy & Security" />
+        <SettingRow isRTL={isRTL} icon="shield-outline" label={t('settingsPrivacy')} />
         <View style={styles.divider} />
         <SettingRow
+          isRTL={isRTL}
+          icon="language-outline"
+          label={t('settingsLanguage')}
+          value={language === 'en' ? 'EN' : 'ع'}
+          onPress={toggleLanguage}
+        />
+        <View style={styles.divider} />
+        <SettingRow
+          isRTL={isRTL}
+          icon="notifications-outline"
+          label={t('settingsNotifications')}
+          onPress={() => router.push('/notifications')}
+        />
+        <View style={styles.divider} />
+        <SettingRow
+          isRTL={isRTL}
           icon="headset-outline"
-          label="Support"
+          label={t('settingsSupport')}
           sub={SUPPORT_EMAIL}
           onPress={handleSupport}
         />
@@ -86,29 +106,29 @@ export default function PersonalSettings() {
       {/* Referral code */}
       <TouchableOpacity style={styles.referralCard} activeOpacity={0.85}>
         <Ionicons name="qr-code-outline" size={20} color="#1e40af" />
-        <Text style={styles.referralText}>Referral Code</Text>
+        <Text style={styles.referralText}>{t('settingsReferral')}</Text>
       </TouchableOpacity>
 
       {/* Switch to Business */}
-      <TouchableOpacity style={styles.switchCard} onPress={() => setMode('business')} activeOpacity={0.85}>
+      <TouchableOpacity style={[styles.switchCard, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => setMode('business')} activeOpacity={0.85}>
         <Ionicons name="swap-horizontal-outline" size={18} color="#4f46e5" />
-        <Text style={styles.switchText}>Switch to Business Mode</Text>
-        <Ionicons name="chevron-forward" size={16} color="#4f46e5" />
+        <Text style={styles.switchText}>{t('settingsSwitchBusiness')}</Text>
+        <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#4f46e5" />
       </TouchableOpacity>
 
       {/* Behavioral Assessment */}
-      <TouchableOpacity style={styles.assessCard} onPress={() => router.push('/behavioral-assessment')} activeOpacity={0.85}>
+      <TouchableOpacity style={[styles.assessCard, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => router.push('/behavioral-assessment')} activeOpacity={0.85}>
         <Ionicons name="analytics-outline" size={18} color="#7c3aed" />
-        <Text style={styles.assessText}>Behavioral Assessment</Text>
-        <Ionicons name="chevron-forward" size={16} color="#7c3aed" />
+        <Text style={styles.assessText}>{t('settingsBehavioral')}</Text>
+        <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#7c3aed" />
       </TouchableOpacity>
 
       {/* Log out */}
       <TouchableOpacity style={styles.logoutCard} onPress={handleLogout} activeOpacity={0.85}>
-        <Text style={styles.logoutText}>Log out</Text>
+        <Text style={styles.logoutText}>{t('settingsLogout')}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.versionText}>Madarik v1.0.0 · Personal Mode</Text>
+      <Text style={styles.versionText}>{t('settingsVersion')} · {t('personalMode')}</Text>
     </ScrollView>
   );
 }
@@ -129,6 +149,7 @@ const styles = StyleSheet.create({
   rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   rowLabel: { fontSize: 14, color: '#111827', fontFamily: 'Inter_500Medium' },
   rowSub: { fontSize: 11, color: '#9ca3af', marginTop: 1, fontFamily: 'Inter_400Regular' },
+  rowValue: { fontSize: 13, color: '#6b7280', marginRight: 6, fontFamily: 'Inter_500Medium' },
   divider: { height: 1, backgroundColor: '#f9fafb', marginLeft: 64 },
   referralCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#eff6ff', borderRadius: 14, marginHorizontal: 16, marginTop: 12, paddingVertical: 14, borderWidth: 1, borderColor: '#bfdbfe' },
   referralText: { fontSize: 14, fontWeight: '600', color: '#1e40af', fontFamily: 'Inter_600SemiBold' },
