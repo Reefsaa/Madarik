@@ -53,16 +53,16 @@ export default function AnalyticsScreen() {
         </View>
 
         {/* Summary KPIs */}
-        <View style={styles.summaryRow}>
+        <View style={[styles.summaryRow, isRTL && { flexDirection: 'row-reverse' }]}>
           {[
             { label: t('analyticsRevenue'),  value: 'SAR 310K', change: '+12%',  positive: true  },
             { label: t('analyticsExpenses'), value: 'SAR 245K', change: '+3.2%', positive: false },
             { label: t('analyticsNetProfit'),value: 'SAR 65K',  change: '+21%',  positive: true  },
           ].map((s) => (
             <View key={s.label} style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>{s.label}</Text>
-              <Text style={styles.summaryValue}>{s.value}</Text>
-              <View style={styles.changeBadge}>
+              <Text style={[styles.summaryLabel, isRTL && { textAlign: 'right' }]}>{s.label}</Text>
+              <Text style={[styles.summaryValue, isRTL && { textAlign: 'right' }]}>{s.value}</Text>
+              <View style={[styles.changeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Ionicons name={s.positive ? 'arrow-up-outline' : 'arrow-down-outline'} size={9} color={s.positive ? '#86efac' : '#fca5a5'} />
                 <Text style={[styles.changeText, { color: s.positive ? '#86efac' : '#fca5a5' }]}>{s.change}</Text>
               </View>
@@ -73,7 +73,7 @@ export default function AnalyticsScreen() {
 
       <View style={styles.content}>
         {/* Period selector */}
-        <View style={styles.periodRow}>
+        <View style={[styles.periodRow, isRTL && { flexDirection: 'row-reverse' }]}>
           {PERIODS.map((p) => (
             <TouchableOpacity key={p} style={[styles.periodBtn, period === p && styles.periodBtnActive]} onPress={() => setPeriod(p)} activeOpacity={0.8}>
               <Text style={[styles.periodBtnText, period === p && styles.periodBtnTextActive]}>{p}</Text>
