@@ -50,8 +50,12 @@ function InputRow({ label, placeholder, value, onChange, keyType, secure, showTo
           autoCapitalize="none"
         />
         {showToggle && (
-          <TouchableOpacity onPress={onEye}>
-            <Ionicons name={secure ? 'eye-outline' : 'eye-off-outline'} size={16} color="#9ca3af" />
+          <TouchableOpacity
+            onPress={onEye}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={{ padding: 6 }}
+          >
+            <Ionicons name={secure ? 'eye-outline' : 'eye-off-outline'} size={18} color="#6b7280" />
           </TouchableOpacity>
         )}
       </View>
