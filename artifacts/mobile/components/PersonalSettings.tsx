@@ -10,28 +10,27 @@ import { useLanguage } from '@/context/LanguageContext';
 interface RowProps {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
-  sub?: string;
   value?: string;
+  danger?: boolean;
   onPress?: () => void;
   isRTL?: boolean;
 }
 
-function SettingRow({ icon, label, sub, value, onPress, isRTL }: RowProps) {
+function SettingRow({ icon, label, value, danger, onPress, isRTL }: RowProps) {
   return (
     <TouchableOpacity
-      style={[styles.row, isRTL && { flexDirection: 'row-reverse' }]}
+      style={[styles.settingRow, isRTL && { flexDirection: 'row-reverse' }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.rowIcon}>
-        <Ionicons name={icon} size={18} color="#1e40af" />
+      <View style={[styles.settingIcon, danger && styles.settingIconDanger]}>
+        <Ionicons name={icon} size={17} color={danger ? '#ef4444' : '#4f46e5'} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.rowLabel, isRTL && { textAlign: 'right' }]}>{label}</Text>
-        {sub ? <Text style={[styles.rowSub, isRTL && { textAlign: 'right' }]}>{sub}</Text> : null}
-      </View>
-      {value ? <Text style={styles.rowValue}>{value}</Text> : null}
-      <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#d1d5db" />
+      <Text style={[styles.settingLabel, danger && styles.settingLabelDanger, isRTL && { textAlign: 'right' }]}>
+        {label}
+      </Text>
+      {value ? <Text style={styles.settingValue}>{value}</Text> : null}
+      <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={15} color="#d1d5db" />
     </TouchableOpacity>
   );
 }
@@ -42,10 +41,6 @@ export default function PersonalSettings() {
   const { setMode, clearMode } = useAppMode();
   const { t, language, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-
-  const firstName = user?.name?.split(' ')[0] || '';
-  const lastName = user?.name?.split(' ').slice(1).join(' ') || '';
-  const username = user?.email?.split('@')[0] || '';
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
   const handleLogout = async () => {
@@ -54,6 +49,32 @@ export default function PersonalSettings() {
     router.replace('/(auth)');
   };
 
+  const sections = [
+    {
+      title: t('settingsAccount'),
+      items: [
+        { icon: 'person-outline' as const,    label: t('settingsPersonalInfo'), onPress: () => router.push('/personal-info')      },
+        { icon: 'card-outline' as const,      label: t('settingsCards'),        onPress: () => router.push('/cards')              },
+        { icon: 'shield-outline' as const,    label: t('settingsPrivacy'),      onPress: () => router.push('/privacy-security')   },
+      ],
+    },
+    {
+      title: t('settingsPreferences'),
+      items: [
+        { icon: 'notifications-outline' as const, label: t('settingsNotifications'), onPress: () => router.push('/notification-settings') },
+        { icon: 'language-outline' as const,      label: t('settingsLanguage'),      value: language === 'en' ? 'EN' : 'ع', onPress: () => router.push('/language-settings') },
+      ],
+    },
+    {
+      title: t('settingsSecurity'),
+      items: [
+        { icon: 'lock-closed-outline' as const,  label: t('settingsChangePassword'), onPress: () => router.push('/privacy-security') },
+        { icon: 'finger-print-outline' as const, label: t('settingsBiometric'),      onPress: () => router.push('/privacy-security') },
+        { icon: 'shield-checkmark-outline' as const, label: t('settingsTwoFactor'), onPress: () => router.push('/privacy-security') },
+      ],
+    },
+  ];
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
@@ -61,146 +82,149 @@ export default function PersonalSettings() {
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <LinearGradient colors={['#0a0e27', '#1a1060', '#2d1b8e']} style={[styles.header, { paddingTop: topPad + 12 }]}>
-          <View style={styles.notifRow}>
-            <View style={{ flex: 1 }} />
-            <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
-              <Ionicons name="notifications-outline" size={20} color="#c7d2fe" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.avatarWrap}>
+        <LinearGradient colors={['#0f172a', '#1e1b4b', '#312e81']} style={[styles.header, { paddingTop: topPad + 12 }]}>
+          <Text style={[styles.headerTitle, isRTL && { textAlign: 'right' }]}>{t('settingsProfileTitle')}</Text>
+          <View style={[styles.profileCard, isRTL && { flexDirection: 'row-reverse' }]}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{initials}</Text>
             </View>
+            <View style={styles.profileInfo}>
+              <Text style={[styles.profileName, isRTL && { textAlign: 'right' }]}>{user?.name || 'User'}</Text>
+              <Text style={[styles.profileEmail, isRTL && { textAlign: 'right' }]}>{user?.email || ''}</Text>
+            </View>
+            <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/personal-info')}>
+              <Ionicons name="pencil-outline" size={14} color="#818cf8" />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.profileName}>{firstName} {lastName}</Text>
-          <TouchableOpacity style={styles.usernameRow}>
-            <Text style={styles.usernameText}>{username}</Text>
-            <Ionicons name="pencil-outline" size={13} color="#818cf8" style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
+          <View style={styles.statsRow}>
+            {[
+              { l: t('homeScore'),   v: '87'   },
+              { l: t('homePortfolio'), v: '8.6K' },
+              { l: t('homeSavings'), v: '32%'  },
+            ].map(s => (
+              <View key={s.l} style={styles.statItem}>
+                <Text style={styles.statValue}>{s.v}</Text>
+                <Text style={styles.statLabel}>{s.l}</Text>
+              </View>
+            ))}
+          </View>
         </LinearGradient>
 
-        {/* Settings list */}
-        <View style={styles.listSection}>
-          <SettingRow
-            isRTL={isRTL}
-            icon="person-outline"
-            label={t('settingsPersonalInfo')}
-            onPress={() => router.push('/personal-info')}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            isRTL={isRTL}
-            icon="card-outline"
-            label={t('settingsCards')}
-            onPress={() => router.push('/cards')}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            isRTL={isRTL}
-            icon="shield-outline"
-            label={t('settingsPrivacy')}
-            onPress={() => router.push('/privacy-security')}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            isRTL={isRTL}
-            icon="language-outline"
-            label={t('settingsLanguage')}
-            value={language === 'en' ? 'EN' : 'ع'}
-            onPress={() => router.push('/language-settings')}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            isRTL={isRTL}
-            icon="notifications-outline"
-            label={t('settingsNotifications')}
-            onPress={() => router.push('/notification-settings')}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            isRTL={isRTL}
-            icon="headset-outline"
-            label={t('settingsSupport')}
-            onPress={() => router.push('/support')}
-          />
+        <View style={styles.content}>
+          {sections.map(section => (
+            <View key={section.title} style={styles.section}>
+              <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{section.title}</Text>
+              <View style={styles.sectionCard}>
+                {section.items.map((item, idx) => (
+                  <View key={item.label}>
+                    <SettingRow
+                      isRTL={isRTL}
+                      icon={item.icon}
+                      label={item.label}
+                      value={'value' in item ? (item as any).value : undefined}
+                      onPress={item.onPress}
+                    />
+                    {idx < section.items.length - 1 && <View style={styles.divider} />}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
+
+          {/* Behavioral Assessment */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{t('settingsHelp')}</Text>
+            <View style={styles.sectionCard}>
+              <SettingRow
+                isRTL={isRTL}
+                icon="headset-outline"
+                label={t('settingsSupport')}
+                onPress={() => router.push('/support')}
+              />
+              <View style={styles.divider} />
+              <SettingRow
+                isRTL={isRTL}
+                icon="analytics-outline"
+                label={t('settingsBehavioral')}
+                onPress={() => router.push('/behavioral-assessment')}
+              />
+            </View>
+          </View>
+
+          {/* Referral Code */}
+          <View style={styles.section}>
+            <View style={styles.sectionCard}>
+              <SettingRow
+                isRTL={isRTL}
+                icon="qr-code-outline"
+                label={t('settingsReferral')}
+                onPress={() =>
+                  Alert.alert(
+                    isRTL ? 'رمز الإحالة' : 'Referral Code',
+                    `${isRTL ? 'رمزك:' : 'Your code:'} MDK-${(user?.email ?? 'USER').replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase()}`,
+                  )
+                }
+              />
+            </View>
+          </View>
+
+          {/* Switch to Business */}
+          <View style={styles.section}>
+            <View style={styles.sectionCard}>
+              <SettingRow
+                isRTL={isRTL}
+                icon="swap-horizontal-outline"
+                label={t('settingsSwitchBusiness')}
+                onPress={() => setMode('business')}
+              />
+            </View>
+          </View>
+
+          {/* Sign out */}
+          <View style={styles.section}>
+            <View style={styles.sectionCard}>
+              <SettingRow
+                isRTL={isRTL}
+                icon="log-out-outline"
+                label={t('settingsSignOut')}
+                danger
+                onPress={handleLogout}
+              />
+            </View>
+          </View>
+
+          <Text style={styles.versionText}>{t('settingsVersion')} · {t('personalMode')}</Text>
         </View>
-
-        {/* Referral code */}
-        <TouchableOpacity
-          style={styles.referralCard}
-          activeOpacity={0.85}
-          onPress={() =>
-            Alert.alert(
-              isRTL ? 'رمز الإحالة' : 'Referral Code',
-              `${isRTL ? 'رمزك:' : 'Your code:'} MDK-${(user?.email ?? 'USER').replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase()}`,
-            )
-          }
-        >
-          <Ionicons name="qr-code-outline" size={20} color="#1e40af" />
-          <Text style={styles.referralText}>{t('settingsReferral')}</Text>
-        </TouchableOpacity>
-
-        {/* Switch to Business */}
-        <TouchableOpacity
-          style={[styles.switchCard, isRTL && { flexDirection: 'row-reverse' }]}
-          onPress={() => setMode('business')}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="swap-horizontal-outline" size={18} color="#4f46e5" />
-          <Text style={styles.switchText}>{t('settingsSwitchBusiness')}</Text>
-          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#4f46e5" />
-        </TouchableOpacity>
-
-        {/* Behavioral Assessment */}
-        <TouchableOpacity
-          style={[styles.assessCard, isRTL && { flexDirection: 'row-reverse' }]}
-          onPress={() => router.push('/behavioral-assessment')}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="analytics-outline" size={18} color="#7c3aed" />
-          <Text style={styles.assessText}>{t('settingsBehavioral')}</Text>
-          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#7c3aed" />
-        </TouchableOpacity>
-
-        {/* Log out */}
-        <TouchableOpacity style={styles.logoutCard} onPress={handleLogout} activeOpacity={0.85}>
-          <Ionicons name="log-out-outline" size={18} color="#6b7280" />
-          <Text style={styles.logoutText}>{t('settingsLogout')}</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.versionText}>{t('settingsVersion')} · {t('personalMode')}</Text>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f3f4f6' },
-  header: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 24 },
-  notifRow: { flexDirection: 'row', width: '100%', marginBottom: 16 },
-  notifBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  avatarWrap: { marginBottom: 12 },
-  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#4f46e5', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)' },
-  avatarText: { fontSize: 26, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
-  profileName: { fontSize: 20, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 4 },
-  usernameRow: { flexDirection: 'row', alignItems: 'center' },
-  usernameText: { fontSize: 13, color: '#818cf8', fontFamily: 'Inter_400Regular' },
-  listSection: { backgroundColor: '#fff', borderRadius: 16, marginHorizontal: 16, marginTop: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  rowLabel: { fontSize: 14, color: '#111827', fontFamily: 'Inter_500Medium' },
-  rowSub: { fontSize: 11, color: '#9ca3af', marginTop: 1, fontFamily: 'Inter_400Regular' },
-  rowValue: { fontSize: 13, color: '#6b7280', marginRight: 6, fontFamily: 'Inter_500Medium' },
-  divider: { height: 1, backgroundColor: '#f9fafb', marginLeft: 64 },
-  referralCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#eff6ff', borderRadius: 14, marginHorizontal: 16, marginTop: 12, paddingVertical: 14, borderWidth: 1, borderColor: '#bfdbfe' },
-  referralText: { fontSize: 14, fontWeight: '600', color: '#1e40af', fontFamily: 'Inter_600SemiBold' },
-  switchCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#e0e7ff' },
-  switchText: { flex: 1, fontSize: 14, color: '#4f46e5', fontFamily: 'Inter_600SemiBold' },
-  assessCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 10, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#ede9fe' },
-  assessText: { flex: 1, fontSize: 14, color: '#7c3aed', fontFamily: 'Inter_600SemiBold' },
-  logoutCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginTop: 10, paddingVertical: 14, borderWidth: 1, borderColor: '#f3f4f6' },
-  logoutText: { fontSize: 14, color: '#6b7280', fontFamily: 'Inter_500Medium' },
-  versionText: { textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 16, fontFamily: 'Inter_400Regular' },
+  screen: { flex: 1, backgroundColor: '#f9fafb' },
+  header: { padding: 16, paddingBottom: 20 },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 16 },
+  profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 18, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 16 },
+  avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#4f46e5', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  avatarText: { fontSize: 20, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
+  profileInfo: { flex: 1 },
+  profileName: { fontSize: 15, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
+  profileEmail: { fontSize: 11, color: '#94a3b8', marginTop: 2, fontFamily: 'Inter_400Regular' },
+  editBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 14 },
+  statItem: { flex: 1, alignItems: 'center' },
+  statValue: { fontSize: 20, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold' },
+  statLabel: { fontSize: 10, color: '#64748b', marginTop: 2, fontFamily: 'Inter_400Regular' },
+  content: { padding: 16 },
+  section: { marginBottom: 16 },
+  sectionTitle: { fontSize: 11, fontWeight: '700', color: '#9ca3af', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase', fontFamily: 'Inter_700Bold' },
+  sectionCard: { backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#f3f4f6', overflow: 'hidden' },
+  settingRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 13 },
+  settingIcon: { width: 32, height: 32, borderRadius: 9, backgroundColor: '#eef2ff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  settingIconDanger: { backgroundColor: '#fef2f2' },
+  settingLabel: { flex: 1, fontSize: 14, color: '#111827', fontFamily: 'Inter_500Medium' },
+  settingLabelDanger: { color: '#ef4444' },
+  settingValue: { fontSize: 11, color: '#9ca3af', marginRight: 6, fontFamily: 'Inter_400Regular' },
+  divider: { height: 1, backgroundColor: '#f9fafb', marginLeft: 58 },
+  versionText: { textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 8, fontFamily: 'Inter_400Regular' },
 });
