@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
@@ -32,10 +32,14 @@ export default function BusinessSettings() {
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
+  const comingSoon = (label: string) => {
+    Alert.alert(label, isRTL ? 'هذه الميزة ستكون متاحة قريباً.' : 'This feature will be available soon.');
+  };
+
   const handleLogout = async () => {
     await clearMode();
     await logout();
-    router.replace('/(auth)/');
+    router.replace('/(auth)');
   };
 
   const handleSupport = () => {
@@ -46,113 +50,119 @@ export default function BusinessSettings() {
     {
       title: t('settingsAccount'),
       items: [
-        { icon: 'person-outline' as const, label: t('settingsPersonalInfo') },
-        { icon: 'business-outline' as const, label: t('settingsCompanyDetails') },
-        { icon: 'card-outline' as const, label: t('settingsPaymentMethods') },
-        { icon: 'document-text-outline' as const, label: t('settingsBilling') },
+        { icon: 'person-outline' as const,         label: t('settingsPersonalInfo'),    onPress: () => comingSoon(t('settingsPersonalInfo')) },
+        { icon: 'business-outline' as const,        label: t('settingsCompanyDetails'),  onPress: () => comingSoon(t('settingsCompanyDetails')) },
+        { icon: 'card-outline' as const,            label: t('settingsPaymentMethods'),  onPress: () => comingSoon(t('settingsPaymentMethods')) },
+        { icon: 'document-text-outline' as const,   label: t('settingsBilling'),         onPress: () => comingSoon(t('settingsBilling')) },
       ],
     },
     {
       title: t('settingsPreferences'),
       items: [
-        { icon: 'notifications-outline' as const, label: t('settingsNotifications'), value: 'On', onPress: () => router.push('/notifications') },
-        { icon: 'language-outline' as const, label: t('settingsLanguage'), value: language === 'en' ? 'EN' : 'ع', onPress: toggleLanguage },
-        { icon: 'cash-outline' as const, label: t('settingsCurrency'), value: 'SAR' },
+        { icon: 'notifications-outline' as const, label: t('settingsNotifications'), value: 'On',                          onPress: () => router.push('/notifications') },
+        { icon: 'language-outline' as const,      label: t('settingsLanguage'),       value: language === 'en' ? 'EN' : 'ع', onPress: toggleLanguage },
+        { icon: 'cash-outline' as const,          label: t('settingsCurrency'),       value: 'SAR',                         onPress: () => comingSoon(t('settingsCurrency')) },
       ],
     },
     {
       title: t('settingsSecurity'),
       items: [
-        { icon: 'lock-closed-outline' as const, label: t('settingsChangePassword') },
-        { icon: 'finger-print-outline' as const, label: t('settingsBiometric'), value: 'On' },
-        { icon: 'shield-outline' as const, label: t('settingsTwoFactor'), value: 'On' },
+        { icon: 'lock-closed-outline' as const,  label: t('settingsChangePassword'), onPress: () => comingSoon(t('settingsChangePassword')) },
+        { icon: 'finger-print-outline' as const, label: t('settingsBiometric'),      value: 'On', onPress: () => comingSoon(t('settingsBiometric')) },
+        { icon: 'shield-outline' as const,       label: t('settingsTwoFactor'),      value: 'On', onPress: () => comingSoon(t('settingsTwoFactor')) },
       ],
     },
   ];
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
-      <LinearGradient colors={['#0f172a', '#1e1b4b', '#312e81']} style={[styles.header, { paddingTop: topPad + 12 }]}>
-        <Text style={[styles.headerTitle, isRTL && { textAlign: 'right' }]}>{t('settingsProfileTitle')}</Text>
-        <View style={[styles.profileCard, isRTL && { flexDirection: 'row-reverse' }]}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <LinearGradient colors={['#0f172a', '#1e1b4b', '#312e81']} style={[styles.header, { paddingTop: topPad + 12 }]}>
+          <Text style={[styles.headerTitle, isRTL && { textAlign: 'right' }]}>{t('settingsProfileTitle')}</Text>
+          <View style={[styles.profileCard, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={[styles.profileName, isRTL && { textAlign: 'right' }]}>{user?.name || 'User'}</Text>
+              <Text style={[styles.profileEmail, isRTL && { textAlign: 'right' }]}>{user?.email || ''}</Text>
+              <Text style={[styles.profileCompany, isRTL && { textAlign: 'right' }]}>{user?.company || ''}</Text>
+            </View>
+            <TouchableOpacity style={styles.editBtn}>
+              <Ionicons name="pencil-outline" size={14} color="#818cf8" />
+            </TouchableOpacity>
           </View>
-          <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, isRTL && { textAlign: 'right' }]}>{user?.name || 'User'}</Text>
-            <Text style={[styles.profileEmail, isRTL && { textAlign: 'right' }]}>{user?.email || ''}</Text>
-            <Text style={[styles.profileCompany, isRTL && { textAlign: 'right' }]}>{user?.company || ''}</Text>
+          <View style={styles.statsRow}>
+            {[
+              { l: t('homeHealthScore'), v: '89' },
+              { l: t('homeAccounts'), v: '4' },
+              { l: t('homeAlerts'), v: '3' },
+            ].map(s => (
+              <View key={s.l} style={styles.statItem}>
+                <Text style={styles.statValue}>{s.v}</Text>
+                <Text style={styles.statLabel}>{s.l}</Text>
+              </View>
+            ))}
           </View>
-          <TouchableOpacity style={styles.editBtn}>
-            <Ionicons name="pencil-outline" size={14} color="#818cf8" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.statsRow}>
-          {[
-            { l: t('homeHealthScore'), v: '89' },
-            { l: t('homeAccounts'), v: '4' },
-            { l: t('homeAlerts'), v: '3' },
-          ].map(s => (
-            <View key={s.l} style={styles.statItem}>
-              <Text style={styles.statValue}>{s.v}</Text>
-              <Text style={styles.statLabel}>{s.l}</Text>
+        </LinearGradient>
+
+        <View style={styles.content}>
+          {sections.map((section) => (
+            <View key={section.title} style={styles.section}>
+              <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{section.title}</Text>
+              <View style={styles.sectionCard}>
+                {section.items.map((item, idx) => (
+                  <View key={item.label}>
+                    <SettingRow
+                      isRTL={isRTL}
+                      icon={item.icon}
+                      label={item.label}
+                      value={'value' in item ? (item as any).value : undefined}
+                      onPress={item.onPress}
+                    />
+                    {idx < section.items.length - 1 && <View style={styles.divider} />}
+                  </View>
+                ))}
+              </View>
             </View>
           ))}
-        </View>
-      </LinearGradient>
 
-      <View style={styles.content}>
-        {sections.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{section.title}</Text>
+          {/* Support */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{t('settingsHelp')}</Text>
             <View style={styles.sectionCard}>
-              {section.items.map((item, idx) => (
-                <View key={item.label}>
-                  <SettingRow
-                    isRTL={isRTL}
-                    icon={item.icon}
-                    label={item.label}
-                    value={'value' in item ? item.value : undefined}
-                    onPress={'onPress' in item ? item.onPress : undefined}
-                  />
-                  {idx < section.items.length - 1 && <View style={styles.divider} />}
-                </View>
-              ))}
+              <SettingRow
+                isRTL={isRTL}
+                icon="headset-outline"
+                label={t('settingsSupport')}
+                value={SUPPORT_EMAIL}
+                onPress={handleSupport}
+              />
             </View>
           </View>
-        ))}
 
-        {/* Support */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{t('settingsHelp')}</Text>
-          <View style={styles.sectionCard}>
-            <SettingRow
-              isRTL={isRTL}
-              icon="headset-outline"
-              label={t('settingsSupport')}
-              value={SUPPORT_EMAIL}
-              onPress={handleSupport}
-            />
+          {/* Switch to Personal */}
+          <View style={styles.section}>
+            <View style={styles.sectionCard}>
+              <SettingRow isRTL={isRTL} icon="person-outline" label={t('settingsSwitchPersonal')} onPress={() => setMode('personal')} />
+            </View>
           </View>
-        </View>
 
-        {/* Switch to Personal */}
-        <View style={styles.section}>
-          <View style={styles.sectionCard}>
-            <SettingRow isRTL={isRTL} icon="person-outline" label={t('settingsSwitchPersonal')} onPress={() => setMode('personal')} />
+          {/* Sign out */}
+          <View style={styles.section}>
+            <View style={styles.sectionCard}>
+              <SettingRow isRTL={isRTL} icon="log-out-outline" label={t('settingsSignOut')} danger onPress={handleLogout} />
+            </View>
           </View>
-        </View>
 
-        {/* Sign out */}
-        <View style={styles.section}>
-          <View style={styles.sectionCard}>
-            <SettingRow isRTL={isRTL} icon="log-out-outline" label={t('settingsSignOut')} danger onPress={handleLogout} />
-          </View>
+          <Text style={styles.versionText}>{t('settingsVersion')} · {t('businessMode')}</Text>
         </View>
-
-        <Text style={styles.versionText}>{t('settingsVersion')} · {t('businessMode')}</Text>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

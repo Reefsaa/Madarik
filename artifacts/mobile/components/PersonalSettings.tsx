@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
@@ -39,10 +39,14 @@ export default function PersonalSettings() {
   const username = user?.email?.split('@')[0] || '';
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
+  const comingSoon = (label: string) => {
+    Alert.alert(label, isRTL ? 'هذه الميزة ستكون متاحة قريباً.' : 'This feature will be available soon.');
+  };
+
   const handleLogout = async () => {
     await clearMode();
     await logout();
-    router.replace('/(auth)/');
+    router.replace('/(auth)');
   };
 
   const handleSupport = () => {
@@ -50,86 +54,107 @@ export default function PersonalSettings() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 120 }}>
-      {/* Header */}
-      <LinearGradient colors={['#0a0e27', '#1a1060', '#2d1b8e']} style={[styles.header, { paddingTop: topPad + 12 }]}>
-        <View style={styles.notifRow}>
-          <View style={{ flex: 1 }} />
-          <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
-            <Ionicons name="notifications-outline" size={20} color="#c7d2fe" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.avatarWrap}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <LinearGradient colors={['#0a0e27', '#1a1060', '#2d1b8e']} style={[styles.header, { paddingTop: topPad + 12 }]}>
+          <View style={styles.notifRow}>
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
+              <Ionicons name="notifications-outline" size={20} color="#c7d2fe" />
+            </TouchableOpacity>
           </View>
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+          </View>
+          <Text style={styles.profileName}>{firstName} {lastName}</Text>
+          <TouchableOpacity style={styles.usernameRow}>
+            <Text style={styles.usernameText}>{username}</Text>
+            <Ionicons name="pencil-outline" size={13} color="#818cf8" style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
+        </LinearGradient>
+
+        {/* Settings list */}
+        <View style={styles.listSection}>
+          <SettingRow
+            isRTL={isRTL}
+            icon="person-outline"
+            label={t('settingsPersonalInfo')}
+            onPress={() => comingSoon(t('settingsPersonalInfo'))}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            isRTL={isRTL}
+            icon="card-outline"
+            label={t('settingsCards')}
+            onPress={() => comingSoon(t('settingsCards'))}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            isRTL={isRTL}
+            icon="shield-outline"
+            label={t('settingsPrivacy')}
+            onPress={() => comingSoon(t('settingsPrivacy'))}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            isRTL={isRTL}
+            icon="language-outline"
+            label={t('settingsLanguage')}
+            value={language === 'en' ? 'EN' : 'ع'}
+            onPress={toggleLanguage}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            isRTL={isRTL}
+            icon="notifications-outline"
+            label={t('settingsNotifications')}
+            onPress={() => router.push('/notifications')}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            isRTL={isRTL}
+            icon="headset-outline"
+            label={t('settingsSupport')}
+            sub={SUPPORT_EMAIL}
+            onPress={handleSupport}
+          />
         </View>
-        <Text style={styles.profileName}>{firstName} {lastName}</Text>
-        <TouchableOpacity style={styles.usernameRow}>
-          <Text style={styles.usernameText}>{username}</Text>
-          <Ionicons name="pencil-outline" size={13} color="#818cf8" style={{ marginLeft: 4 }} />
+
+        {/* Referral code */}
+        <TouchableOpacity style={styles.referralCard} activeOpacity={0.85}>
+          <Ionicons name="qr-code-outline" size={20} color="#1e40af" />
+          <Text style={styles.referralText}>{t('settingsReferral')}</Text>
         </TouchableOpacity>
-      </LinearGradient>
 
-      {/* Settings list */}
-      <View style={styles.listSection}>
-        <SettingRow isRTL={isRTL} icon="person-outline" label={t('settingsPersonalInfo')} />
-        <View style={styles.divider} />
-        <SettingRow isRTL={isRTL} icon="card-outline" label={t('settingsCards')} />
-        <View style={styles.divider} />
-        <SettingRow isRTL={isRTL} icon="shield-outline" label={t('settingsPrivacy')} />
-        <View style={styles.divider} />
-        <SettingRow
-          isRTL={isRTL}
-          icon="language-outline"
-          label={t('settingsLanguage')}
-          value={language === 'en' ? 'EN' : 'ع'}
-          onPress={toggleLanguage}
-        />
-        <View style={styles.divider} />
-        <SettingRow
-          isRTL={isRTL}
-          icon="notifications-outline"
-          label={t('settingsNotifications')}
-          onPress={() => router.push('/notifications')}
-        />
-        <View style={styles.divider} />
-        <SettingRow
-          isRTL={isRTL}
-          icon="headset-outline"
-          label={t('settingsSupport')}
-          sub={SUPPORT_EMAIL}
-          onPress={handleSupport}
-        />
-      </View>
+        {/* Switch to Business */}
+        <TouchableOpacity style={[styles.switchCard, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => setMode('business')} activeOpacity={0.85}>
+          <Ionicons name="swap-horizontal-outline" size={18} color="#4f46e5" />
+          <Text style={styles.switchText}>{t('settingsSwitchBusiness')}</Text>
+          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#4f46e5" />
+        </TouchableOpacity>
 
-      {/* Referral code */}
-      <TouchableOpacity style={styles.referralCard} activeOpacity={0.85}>
-        <Ionicons name="qr-code-outline" size={20} color="#1e40af" />
-        <Text style={styles.referralText}>{t('settingsReferral')}</Text>
-      </TouchableOpacity>
+        {/* Behavioral Assessment */}
+        <TouchableOpacity style={[styles.assessCard, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => router.push('/behavioral-assessment')} activeOpacity={0.85}>
+          <Ionicons name="analytics-outline" size={18} color="#7c3aed" />
+          <Text style={styles.assessText}>{t('settingsBehavioral')}</Text>
+          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#7c3aed" />
+        </TouchableOpacity>
 
-      {/* Switch to Business */}
-      <TouchableOpacity style={[styles.switchCard, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => setMode('business')} activeOpacity={0.85}>
-        <Ionicons name="swap-horizontal-outline" size={18} color="#4f46e5" />
-        <Text style={styles.switchText}>{t('settingsSwitchBusiness')}</Text>
-        <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#4f46e5" />
-      </TouchableOpacity>
+        {/* Log out */}
+        <TouchableOpacity style={styles.logoutCard} onPress={handleLogout} activeOpacity={0.85}>
+          <Text style={styles.logoutText}>{t('settingsLogout')}</Text>
+        </TouchableOpacity>
 
-      {/* Behavioral Assessment */}
-      <TouchableOpacity style={[styles.assessCard, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => router.push('/behavioral-assessment')} activeOpacity={0.85}>
-        <Ionicons name="analytics-outline" size={18} color="#7c3aed" />
-        <Text style={styles.assessText}>{t('settingsBehavioral')}</Text>
-        <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color="#7c3aed" />
-      </TouchableOpacity>
-
-      {/* Log out */}
-      <TouchableOpacity style={styles.logoutCard} onPress={handleLogout} activeOpacity={0.85}>
-        <Text style={styles.logoutText}>{t('settingsLogout')}</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.versionText}>{t('settingsVersion')} · {t('personalMode')}</Text>
-    </ScrollView>
+        <Text style={styles.versionText}>{t('settingsVersion')} · {t('personalMode')}</Text>
+      </ScrollView>
+    </View>
   );
 }
 
