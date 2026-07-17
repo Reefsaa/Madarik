@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
@@ -9,15 +9,28 @@ import { useLanguage } from '@/context/LanguageContext';
 
 const SUPPORT_EMAIL = 'madarik.amad@gmail.com';
 
-interface RowProps { icon: keyof typeof Ionicons.glyphMap; label: string; value?: string; danger?: boolean; onPress?: () => void; isRTL?: boolean }
+interface RowProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value?: string;
+  danger?: boolean;
+  onPress?: () => void;
+  isRTL?: boolean;
+}
 
 function SettingRow({ icon, label, value, danger, onPress, isRTL }: RowProps) {
   return (
-    <TouchableOpacity style={[styles.settingRow, isRTL && { flexDirection: 'row-reverse' }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.settingRow, isRTL && { flexDirection: 'row-reverse' }]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={[styles.settingIcon, danger && styles.settingIconDanger]}>
         <Ionicons name={icon} size={17} color={danger ? '#ef4444' : '#4f46e5'} />
       </View>
-      <Text style={[styles.settingLabel, danger && styles.settingLabelDanger, isRTL && { textAlign: 'right' }]}>{label}</Text>
+      <Text style={[styles.settingLabel, danger && styles.settingLabelDanger, isRTL && { textAlign: 'right' }]}>
+        {label}
+      </Text>
       {value ? <Text style={styles.settingValue}>{value}</Text> : null}
       <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={15} color="#d1d5db" />
     </TouchableOpacity>
@@ -28,7 +41,7 @@ export default function BusinessSettings() {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { setMode, clearMode } = useAppMode();
-  const { t, toggleLanguage, language, isRTL } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
@@ -42,34 +55,30 @@ export default function BusinessSettings() {
     router.replace('/(auth)');
   };
 
-  const handleSupport = () => {
-    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Madarik Business Support Request`).catch(() => {});
-  };
-
   const sections = [
     {
       title: t('settingsAccount'),
       items: [
-        { icon: 'person-outline' as const,         label: t('settingsPersonalInfo'),    onPress: () => comingSoon(t('settingsPersonalInfo')) },
-        { icon: 'business-outline' as const,        label: t('settingsCompanyDetails'),  onPress: () => comingSoon(t('settingsCompanyDetails')) },
-        { icon: 'card-outline' as const,            label: t('settingsPaymentMethods'),  onPress: () => comingSoon(t('settingsPaymentMethods')) },
-        { icon: 'document-text-outline' as const,   label: t('settingsBilling'),         onPress: () => comingSoon(t('settingsBilling')) },
+        { icon: 'person-outline' as const,       label: t('settingsPersonalInfo'),   onPress: () => router.push('/personal-info')    },
+        { icon: 'business-outline' as const,     label: t('settingsCompanyDetails'), onPress: () => router.push('/company-details')  },
+        { icon: 'card-outline' as const,         label: t('settingsPaymentMethods'), onPress: () => router.push('/payment-methods')  },
+        { icon: 'document-text-outline' as const,label: t('settingsBilling'),        onPress: () => router.push('/billing')          },
       ],
     },
     {
       title: t('settingsPreferences'),
       items: [
-        { icon: 'notifications-outline' as const, label: t('settingsNotifications'), value: 'On',                          onPress: () => router.push('/notifications') },
-        { icon: 'language-outline' as const,      label: t('settingsLanguage'),       value: language === 'en' ? 'EN' : 'ع', onPress: toggleLanguage },
-        { icon: 'cash-outline' as const,          label: t('settingsCurrency'),       value: 'SAR',                         onPress: () => comingSoon(t('settingsCurrency')) },
+        { icon: 'notifications-outline' as const, label: t('settingsNotifications'), onPress: () => router.push('/notification-settings') },
+        { icon: 'language-outline' as const,      label: t('settingsLanguage'),      value: language === 'en' ? 'EN' : 'ع', onPress: () => router.push('/language-settings') },
+        { icon: 'cash-outline' as const,          label: t('settingsCurrency'),      value: 'SAR', onPress: () => comingSoon(t('settingsCurrency')) },
       ],
     },
     {
       title: t('settingsSecurity'),
       items: [
-        { icon: 'lock-closed-outline' as const,  label: t('settingsChangePassword'), onPress: () => comingSoon(t('settingsChangePassword')) },
-        { icon: 'finger-print-outline' as const, label: t('settingsBiometric'),      value: 'On', onPress: () => comingSoon(t('settingsBiometric')) },
-        { icon: 'shield-outline' as const,       label: t('settingsTwoFactor'),      value: 'On', onPress: () => comingSoon(t('settingsTwoFactor')) },
+        { icon: 'lock-closed-outline' as const,  label: t('settingsChangePassword'), onPress: () => router.push('/privacy-security') },
+        { icon: 'finger-print-outline' as const, label: t('settingsBiometric'),      onPress: () => router.push('/privacy-security') },
+        { icon: 'shield-outline' as const,       label: t('settingsTwoFactor'),      onPress: () => router.push('/privacy-security') },
       ],
     },
   ];
@@ -90,17 +99,17 @@ export default function BusinessSettings() {
             <View style={styles.profileInfo}>
               <Text style={[styles.profileName, isRTL && { textAlign: 'right' }]}>{user?.name || 'User'}</Text>
               <Text style={[styles.profileEmail, isRTL && { textAlign: 'right' }]}>{user?.email || ''}</Text>
-              <Text style={[styles.profileCompany, isRTL && { textAlign: 'right' }]}>{user?.company || ''}</Text>
+              {user?.company ? <Text style={[styles.profileCompany, isRTL && { textAlign: 'right' }]}>{user.company}</Text> : null}
             </View>
-            <TouchableOpacity style={styles.editBtn}>
+            <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/personal-info')}>
               <Ionicons name="pencil-outline" size={14} color="#818cf8" />
             </TouchableOpacity>
           </View>
           <View style={styles.statsRow}>
             {[
               { l: t('homeHealthScore'), v: '89' },
-              { l: t('homeAccounts'), v: '4' },
-              { l: t('homeAlerts'), v: '3' },
+              { l: t('homeAccounts'),   v: '4'  },
+              { l: t('homeAlerts'),     v: '3'  },
             ].map(s => (
               <View key={s.l} style={styles.statItem}>
                 <Text style={styles.statValue}>{s.v}</Text>
@@ -111,7 +120,7 @@ export default function BusinessSettings() {
         </LinearGradient>
 
         <View style={styles.content}>
-          {sections.map((section) => (
+          {sections.map(section => (
             <View key={section.title} style={styles.section}>
               <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{section.title}</Text>
               <View style={styles.sectionCard}>
@@ -139,8 +148,7 @@ export default function BusinessSettings() {
                 isRTL={isRTL}
                 icon="headset-outline"
                 label={t('settingsSupport')}
-                value={SUPPORT_EMAIL}
-                onPress={handleSupport}
+                onPress={() => router.push('/support')}
               />
             </View>
           </View>
@@ -148,14 +156,25 @@ export default function BusinessSettings() {
           {/* Switch to Personal */}
           <View style={styles.section}>
             <View style={styles.sectionCard}>
-              <SettingRow isRTL={isRTL} icon="person-outline" label={t('settingsSwitchPersonal')} onPress={() => setMode('personal')} />
+              <SettingRow
+                isRTL={isRTL}
+                icon="person-outline"
+                label={t('settingsSwitchPersonal')}
+                onPress={() => setMode('personal')}
+              />
             </View>
           </View>
 
           {/* Sign out */}
           <View style={styles.section}>
             <View style={styles.sectionCard}>
-              <SettingRow isRTL={isRTL} icon="log-out-outline" label={t('settingsSignOut')} danger onPress={handleLogout} />
+              <SettingRow
+                isRTL={isRTL}
+                icon="log-out-outline"
+                label={t('settingsSignOut')}
+                danger
+                onPress={handleLogout}
+              />
             </View>
           </View>
 

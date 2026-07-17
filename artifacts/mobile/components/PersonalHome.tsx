@@ -7,27 +7,24 @@ import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
 import { useLanguage } from '@/context/LanguageContext';
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
 const C = {
-  midnight:  '#1A237E',
-  purple:    '#6C5CE7',
-  green:     '#00B894',
-  red:       '#D63031',
-  grey:      '#F5F6FA',
-  dark:      '#0f172a',
+  midnight: '#1A237E',
+  purple:   '#6C5CE7',
+  green:    '#00B894',
+  red:      '#D63031',
 };
 
 const LOGO = require('@/assets/images/madarik-logo.png');
 
 const TRANSACTIONS = [
   { id: '1', name: 'MadarikC',    sub: 'Project bonus',  amount: '+300.00', positive: true  },
-  { id: '2', name: 'muvi cinema', sub: 'Movie tickets',   amount: '-130.00', positive: false },
-  { id: '3', name: 'Zara',        sub: 'Payments',        amount: '-249.00', positive: false },
+  { id: '2', name: 'Muvi Cinema', sub: 'Movie tickets',  amount: '-130.00', positive: false },
+  { id: '3', name: 'Zara',        sub: 'Payments',       amount: '-249.00', positive: false },
 ];
 
 const CARDS = [
   { bal: '8,500', num: '2412 7512 3412 3456', gradient: ['#1A237E', '#312e81'] as const },
-  { bal: '150',   num: '6542 3xxx xxxx xxxx', gradient: ['#1e40af', '#3730a3'] as const },
+  { bal: '2,150', num: '6542 3xxx xxxx xxxx', gradient: ['#1e40af', '#3730a3'] as const },
 ];
 
 export default function PersonalHome() {
@@ -38,6 +35,13 @@ export default function PersonalHome() {
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const firstName = user?.name?.split(' ')[0] || 'there';
 
+  const QUICK_ACTIONS = [
+    { icon: 'trending-up-outline' as const, label: t('homeInvest'),  route: '/investments'           },
+    { icon: 'wallet-outline' as const,      label: t('homeSavings'), route: '/savings'               },
+    { icon: 'card-outline' as const,        label: t('homeCards'),   route: '/cards'                 },
+    { icon: 'bar-chart-outline' as const,   label: t('homeScore'),   route: '/behavioral-assessment' },
+  ];
+
   return (
     <ScrollView
       style={styles.screen}
@@ -47,16 +51,11 @@ export default function PersonalHome() {
       {/* ── Welcome Header ─────────────────────────────────────────────── */}
       <View style={[styles.header, { paddingTop: topPad + 10 }]}>
         <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
-          {/* Logo */}
           <Image source={LOGO} style={styles.headerLogo} resizeMode="contain" />
-
-          {/* Greeting */}
           <View style={[styles.greetWrap, isRTL && { alignItems: 'flex-end' }]}>
             <Text style={styles.goodMorning}>{t('homeGoodMorning')}</Text>
             <Text style={styles.userName}>{t('homeWelcomeBack')} {firstName}</Text>
           </View>
-
-          {/* Bell */}
           <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/notifications')}>
             <Ionicons name="notifications-outline" size={20} color="rgba(255,255,255,0.8)" />
           </TouchableOpacity>
@@ -81,13 +80,13 @@ export default function PersonalHome() {
 
       {/* ── Quick actions ─────────────────────────────────────────────── */}
       <View style={styles.quickRow}>
-        {[
-          { icon: 'trending-up-outline' as const, label: t('homeInvest') },
-          { icon: 'wallet-outline' as const,      label: t('homeSavings') },
-          { icon: 'card-outline' as const,         label: t('homeCards') },
-          { icon: 'bar-chart-outline' as const,    label: t('homeScore') },
-        ].map(q => (
-          <TouchableOpacity key={q.label} style={styles.quickItem} activeOpacity={0.8}>
+        {QUICK_ACTIONS.map(q => (
+          <TouchableOpacity
+            key={q.label}
+            style={styles.quickItem}
+            activeOpacity={0.8}
+            onPress={() => router.push(q.route as any)}
+          >
             <View style={styles.quickIcon}>
               <Ionicons name={q.icon} size={18} color={C.midnight} />
             </View>
@@ -99,25 +98,31 @@ export default function PersonalHome() {
       {/* ── Cards ─────────────────────────────────────────────────────── */}
       <View style={[styles.sectionHeader, isRTL && { flexDirection: 'row-reverse' }]}>
         <Text style={styles.sectionTitle}>{t('homeCards')}</Text>
-        <TouchableOpacity><Text style={styles.sectionLink}>{t('homeViewAll')}</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/cards')}>
+          <Text style={styles.sectionLink}>{t('homeViewAll')}</Text>
+        </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
         {CARDS.map((c, i) => (
-          <LinearGradient key={i} colors={c.gradient} style={styles.card}>
-            <Text style={styles.cardBal}>SAR {c.bal}</Text>
-            <Text style={styles.cardNum}>{c.num}</Text>
-            <View style={[styles.cardBottom, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Text style={styles.cardLabel}>{t('homeBalance')}</Text>
-              <Ionicons name="wifi-outline" size={18} color="rgba(255,255,255,0.6)" />
-            </View>
-          </LinearGradient>
+          <TouchableOpacity key={i} onPress={() => router.push('/cards')} activeOpacity={0.9}>
+            <LinearGradient colors={c.gradient} style={styles.card}>
+              <Text style={styles.cardBal}>SAR {c.bal}</Text>
+              <Text style={styles.cardNum}>{c.num}</Text>
+              <View style={[styles.cardBottom, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.cardLabel}>{t('homeBalance')}</Text>
+                <Ionicons name="wifi-outline" size={18} color="rgba(255,255,255,0.6)" />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
         ))}
       </ScrollView>
 
       {/* ── Transactions ──────────────────────────────────────────────── */}
       <View style={[styles.sectionHeader, isRTL && { flexDirection: 'row-reverse' }]}>
         <Text style={styles.sectionTitle}>{t('homeRecentTx')}</Text>
-        <TouchableOpacity><Text style={styles.sectionLink}>{t('homeViewAll')}</Text></TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.sectionLink}>{t('homeViewAll')}</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.txList}>
         {TRANSACTIONS.map(tx => (

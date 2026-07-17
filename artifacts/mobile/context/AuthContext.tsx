@@ -5,6 +5,12 @@ export interface User {
   name: string;
   email: string;
   company: string;
+  mobile?: string;
+  nationalId?: string;
+  crNumber?: string;
+  taxNumber?: string;
+  industry?: string;
+  address?: string;
 }
 
 interface AuthContextType {
@@ -13,14 +19,13 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, company: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 const STORAGE_KEY = 'madarik_user_v2';
 
 // ── API base URL ──────────────────────────────────────────────────────────────
-// EXPO_PUBLIC_DOMAIN is injected by the dev script as $REPLIT_DEV_DOMAIN.
-// This makes the real API reachable from both Expo native and Expo web.
 function getApiBase(): string | null {
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   if (domain) return `https://${domain}`;
@@ -33,6 +38,17 @@ async function apiPost(path: string, body: Record<string, string>): Promise<Resp
   const url = `${base}/api${path}`;
   return fetch(url, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+async function apiPatch(path: string, body: Record<string, unknown>): Promise<Response> {
+  const base = getApiBase();
+  if (!base) throw new Error('NO_API');
+  const url = `${base}/api${path}`;
+  return fetch(url, {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
@@ -62,7 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await resp.json();
 
       if (!resp.ok) {
-        // Server returned a proper auth error — surface it to the UI
         throw new Error(data.error ?? 'Invalid credentials');
       }
 
@@ -70,13 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: data.user.name,
         email: data.user.email,
         company: data.user.company ?? '',
+        mobile: data.user.mobile ?? '',
+        nationalId: data.user.nationalId ?? '',
       };
     } catch (err: unknown) {
-      // If it's a real auth error from the server, re-throw so UI shows the message
       if (err instanceof Error && err.message !== 'NO_API' && !err.message.includes('fetch')) {
         throw err;
       }
-      // Network / API-unavailable — fall back to local credential check
       serverUser = null;
     }
 
@@ -86,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // ── Offline / dev fallback: derive identity from stored record ──────────
+    // ── Offline / dev fallback ─────────────────────────────────────────────
     let existing: User | null = null;
     try {
       const val = await AsyncStorage.getItem(STORAGE_KEY);
@@ -104,6 +119,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: existing?.name ?? derivedName,
       email,
       company: existing?.company ?? '',
+      mobile: existing?.mobile ?? '',
+      nationalId: existing?.nationalId ?? '',
     };
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
     setUser(fallbackUser);
@@ -140,7 +157,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // ── Offline / dev fallback ─────────────────────────────────────────────
       const fallbackUser: User = { name, email, company };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
       setUser(fallbackUser);
@@ -154,8 +170,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  // ── updateUser ────────────────────────────────────────────────────────────
+  const updateUser = useCallback(async (updates: Partial<User>) => {
+    if (!user) return;
+    const updated: User = { ...user, ...updates };
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setUser(updated);
+
+    // Best-effort sync to API
+    try {
+      await apiPatch('/auth/profile', { email: user.email, ...updates });
+    } catch {
+      // Silently ignore — local state is already updated
+    }
+  }, [user]);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
