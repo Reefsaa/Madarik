@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -42,6 +44,16 @@ export default function PersonalSettings() {
   const { t, language, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
+  const [showReferral, setShowReferral] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const referralCode = `MDK-${(user?.email ?? 'USER').replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase()}`;
+
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(referralCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleLogout = async () => {
     await clearMode();
@@ -68,15 +80,44 @@ export default function PersonalSettings() {
     {
       title: t('settingsSecurity'),
       items: [
-        { icon: 'lock-closed-outline' as const,  label: t('settingsChangePassword'), onPress: () => router.push('/privacy-security') },
-        { icon: 'finger-print-outline' as const, label: t('settingsBiometric'),      onPress: () => router.push('/privacy-security') },
-        { icon: 'shield-checkmark-outline' as const, label: t('settingsTwoFactor'), onPress: () => router.push('/privacy-security') },
+        { icon: 'lock-closed-outline' as const,      label: t('settingsChangePassword'), onPress: () => router.push('/privacy-security') },
+        { icon: 'finger-print-outline' as const,     label: t('settingsBiometric'),      onPress: () => router.push('/privacy-security') },
+        { icon: 'shield-checkmark-outline' as const, label: t('settingsTwoFactor'),      onPress: () => router.push('/privacy-security') },
       ],
     },
   ];
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Referral Code Modal */}
+      <Modal visible={showReferral} transparent animationType="fade" onRequestClose={() => setShowReferral(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <LinearGradient colors={['#312e81', '#4f46e5']} style={styles.modalHeader}>
+              <Ionicons name="qr-code-outline" size={32} color="#fff" />
+              <Text style={styles.modalTitle}>{isRTL ? 'رمز الإحالة' : 'Referral Code'}</Text>
+              <Text style={styles.modalSub}>
+                {isRTL ? 'شارك هذا الرمز مع أصدقائك' : 'Share this code with your friends'}
+              </Text>
+            </LinearGradient>
+            <View style={styles.modalBody}>
+              <View style={styles.codeBox}>
+                <Text style={styles.codeText}>{referralCode}</Text>
+              </View>
+              <TouchableOpacity style={styles.copyBtn} onPress={handleCopy} activeOpacity={0.8}>
+                <Ionicons name={copied ? 'checkmark-circle-outline' : 'copy-outline'} size={18} color="#fff" />
+                <Text style={styles.copyBtnText}>
+                  {copied ? (isRTL ? 'تم النسخ!' : 'Copied!') : (isRTL ? 'نسخ الرمز' : 'Copy Code')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowReferral(false)} activeOpacity={0.8}>
+                <Text style={styles.closeBtnText}>{isRTL ? 'إغلاق' : 'Close'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView
         style={styles.screen}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -98,9 +139,9 @@ export default function PersonalSettings() {
           </View>
           <View style={styles.statsRow}>
             {[
-              { l: t('homeScore'),   v: '87'   },
+              { l: t('homeScore'),     v: '87'   },
               { l: t('homePortfolio'), v: '8.6K' },
-              { l: t('homeSavings'), v: '32%'  },
+              { l: t('homeSavings'),   v: '32%'  },
             ].map(s => (
               <View key={s.l} style={styles.statItem}>
                 <Text style={styles.statValue}>{s.v}</Text>
@@ -131,7 +172,7 @@ export default function PersonalSettings() {
             </View>
           ))}
 
-          {/* Behavioral Assessment */}
+          {/* Help */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, isRTL && { textAlign: 'right' }]}>{t('settingsHelp')}</Text>
             <View style={styles.sectionCard}>
@@ -158,12 +199,7 @@ export default function PersonalSettings() {
                 isRTL={isRTL}
                 icon="qr-code-outline"
                 label={t('settingsReferral')}
-                onPress={() =>
-                  Alert.alert(
-                    isRTL ? 'رمز الإحالة' : 'Referral Code',
-                    `${isRTL ? 'رمزك:' : 'Your code:'} MDK-${(user?.email ?? 'USER').replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase()}`,
-                  )
-                }
+                onPress={() => setShowReferral(true)}
               />
             </View>
           </View>
@@ -202,6 +238,22 @@ export default function PersonalSettings() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#f9fafb' },
+
+  /* Modal */
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard: { width: '100%', borderRadius: 24, overflow: 'hidden', backgroundColor: '#fff' },
+  modalHeader: { alignItems: 'center', paddingVertical: 28, gap: 8 },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold' },
+  modalSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: 'Inter_400Regular' },
+  modalBody: { padding: 20, gap: 12 },
+  codeBox: { backgroundColor: '#f3f4f6', borderRadius: 14, paddingVertical: 18, alignItems: 'center', borderWidth: 2, borderColor: '#e0e7ff', borderStyle: 'dashed' },
+  codeText: { fontSize: 26, fontWeight: '800', color: '#312e81', letterSpacing: 3, fontFamily: 'Inter_700Bold' },
+  copyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#4f46e5', borderRadius: 14, paddingVertical: 14 },
+  copyBtnText: { fontSize: 14, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
+  closeBtn: { alignItems: 'center', paddingVertical: 12 },
+  closeBtnText: { fontSize: 14, color: '#9ca3af', fontFamily: 'Inter_500Medium' },
+
+  /* Header */
   header: { padding: 16, paddingBottom: 20 },
   headerTitle: { fontSize: 22, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold', marginBottom: 16 },
   profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 18, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 16 },
@@ -215,6 +267,8 @@ const styles = StyleSheet.create({
   statItem: { flex: 1, alignItems: 'center' },
   statValue: { fontSize: 20, fontWeight: '800', color: '#fff', fontFamily: 'Inter_700Bold' },
   statLabel: { fontSize: 10, color: '#64748b', marginTop: 2, fontFamily: 'Inter_400Regular' },
+
+  /* Content */
   content: { padding: 16 },
   section: { marginBottom: 16 },
   sectionTitle: { fontSize: 11, fontWeight: '700', color: '#9ca3af', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase', fontFamily: 'Inter_700Bold' },
