@@ -8,11 +8,17 @@ import { useLanguage } from '@/context/LanguageContext';
 const PERIODS = ['30D', '60D', '90D', '1Y'] as const;
 type Period = (typeof PERIODS)[number];
 
+// Values in SAR thousands. Seasonal pattern: slow Jan–Feb, strong Apr–May pre-Ramadan,
+// dip Jun–Jul (Ramadan + Eid), recovery Aug–Sep, Q4 peak Oct–Nov.
 const REVENUE_DATA: Record<Period, number[]> = {
-  '30D': [28, 34, 22, 40, 31, 47, 25, 38, 18, 44, 29, 41],
-  '60D': [24, 31, 28, 39, 33, 45, 27, 36, 22, 41, 30, 44],
-  '90D': [20, 27, 32, 35, 29, 42, 24, 33, 26, 38, 28, 40],
-  '1Y':  [18, 24, 30, 33, 27, 38, 22, 31, 25, 35, 26, 39],
+  // 30-day view — daily totals in SAR thousands (avg ~10.3K/day × 30 ≈ 310K)
+  '30D': [9.2, 10.8, 8.6, 11.4, 10.1, 12.3, 9.7, 11.0, 8.4, 12.7, 10.5, 13.1],
+  // 60-day view — bi-weekly averages trending up into Q4
+  '60D': [274, 283, 279, 292, 286, 299, 281, 295, 289, 305, 297, 312],
+  // 90-day view — monthly snapshots for Aug–Oct period
+  '90D': [267, 279, 272, 287, 281, 295, 276, 291, 286, 301, 293, 310],
+  // 1-year view — full 12 months in SAR thousands
+  '1Y':  [255, 272, 299, 326, 342, 275, 259, 294, 331, 356, 371, 360],
 };
 
 export default function AnalyticsScreen() {
