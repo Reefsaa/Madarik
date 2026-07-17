@@ -32,14 +32,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, _password: string) => {
-    // Derive a display name from whatever the user typed (email or username)
+    // Preserve any existing user data (name, company) saved during signup
+    let existing: User | null = null;
+    try {
+      const val = await AsyncStorage.getItem(STORAGE_KEY);
+      if (val) existing = JSON.parse(val) as User;
+    } catch {}
+
+    // Derive a display name from the email/username only if no saved name exists
     const raw = email.includes('@') ? email.split('@')[0] : email;
-    const displayName = raw
+    const derivedName = raw
       .replace(/[._-]+/g, ' ')
       .split(' ')
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
-    const u: User = { name: displayName, email, company: '' };
+
+    const u: User = {
+      name: existing?.name || derivedName,
+      email,
+      company: existing?.company || '',
+    };
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(u));
     setUser(u);
   }, []);

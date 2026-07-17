@@ -10,7 +10,8 @@ export default function AccountsScreen() {
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const firstName = user?.name?.split(' ')[0] || 'there';
+  const firstName = user?.name?.split(' ')[0] || 'there'
+  const company = user?.company || '';
 
   const QUICK_ACTIONS = [
     { icon: 'arrow-redo-outline'         as const, label: t('accountsTransfer') },
@@ -36,8 +37,11 @@ export default function AccountsScreen() {
           </TouchableOpacity>
         </View>
         <Text style={[styles.welcome, isRTL && { textAlign: 'right' }]}>
-          {t('homeWelcomeBack')} {firstName}
+          {t('homeWelcomeBack')} {user?.name || firstName}
         </Text>
+        {company ? (
+          <Text style={[styles.companyName, isRTL && { textAlign: 'right' }]}>{company}</Text>
+        ) : null}
         <Text style={[styles.welcomeSub, isRTL && { textAlign: 'right' }]}>{t('accountsWelcomeSub')}</Text>
 
         {/* Total Balance */}
@@ -144,6 +148,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 19, fontWeight: '700', color: '#fff', fontFamily: 'Inter_700Bold' },
   addBtn: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
   welcome: { fontSize: 15, fontWeight: '700', color: '#fff', marginTop: 14, fontFamily: 'Inter_700Bold' },
+  companyName: { fontSize: 13, color: '#818cf8', marginTop: 2, fontFamily: 'Inter_500Medium' },
   welcomeSub: { fontSize: 11, color: '#c7d2fe', marginTop: 3, fontFamily: 'Inter_400Regular' },
   balanceCard: { borderRadius: 18, padding: 16, marginTop: 16 },
   balanceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
