@@ -1,6 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
+// ─── ApiError carries an optional field name for form-level error placement ───
+export class ApiError extends Error {
+  field?: string;
+  constructor(message: string, field?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.field = field;
+  }
+}
+
 export interface User {
   name: string;
   email: string;
@@ -13,11 +23,18 @@ export interface User {
   address?: string;
 }
 
+export interface SignupExtras {
+  nationalId?: string;
+  mobile?: string;
+  username?: string;
+  crNumber?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, company: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, company: string, extras?: SignupExtras) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
 }
@@ -128,23 +145,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── signup ───────────────────────────────────────────────────────────────
   const signup = useCallback(
-    async (name: string, email: string, password: string, company: string) => {
+    async (name: string, email: string, password: string, company: string, extras?: SignupExtras) => {
       let serverUser: User | null = null;
 
       try {
-        const resp = await apiPost('/auth/register', { name, email, password, company });
+        const resp = await apiPost('/auth/register', {
+          name, email, password, company,
+          nationalId: extras?.nationalId ?? '',
+          mobile:     extras?.mobile     ?? '',
+          username:   extras?.username   ?? '',
+          crNumber:   extras?.crNumber   ?? '',
+        });
         const data = await resp.json();
 
         if (!resp.ok) {
-          throw new Error(data.error ?? 'Registration failed');
+          // Throw ApiError with optional field so the UI can highlight the right input
+          throw new ApiError(data.error ?? 'Registration failed', data.field);
         }
 
         serverUser = {
-          name: data.user.name,
-          email: data.user.email,
+          name:    data.user.name,
+          email:   data.user.email,
           company: data.user.company ?? '',
         };
       } catch (err: unknown) {
+        if (err instanceof ApiError) throw err; // always re-throw our typed errors
         if (err instanceof Error && err.message !== 'NO_API' && !err.message.includes('fetch')) {
           throw err;
         }
