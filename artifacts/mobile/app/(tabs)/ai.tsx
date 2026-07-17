@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppMode } from '@/context/AppModeContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { router } from 'expo-router';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -39,11 +40,7 @@ function nowTime() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── Local knowledge engine ───────────────────────────────────────────────────
-// Matches by intent priority. Falls through to a context-appropriate default
-// that varies so repeated unknown queries don't feel identical.
-
-let _defaultRotate = 0; // cycles through fallback messages
+let _defaultRotate = 0;
 
 function getLocalResponse(
   text: string,
@@ -52,39 +49,33 @@ function getLocalResponse(
 ): { text: string; miniCard?: { label: string; value: string } } {
   const q = text.toLowerCase().trim();
 
-  // ── Universal intents ────────────────────────────────────────────────────
   if (q.length === 0) return { text: `What's on your mind, ${firstName}?` };
 
-  const isGreeting   = /^(hi|hey|hello|سلام|مرحبا|هلا|صباح|مساء)\b/.test(q);
-  const isVague      = /^(ok|okay|sure|hmm|oh|ah|right|yeah|yep|nope|no|yes|k|mm|what\??|idk|i don['']?t know|not sure|dunno|ما أدري|لا أعرف)\b/.test(q) || q.length < 6;
-  const isThanks     = /thank|شكر|مشكور/.test(q);
-  const isHelp       = /help|what can you|what do you|tell me|guide|assist|ساعدني|ماذا تقدر/.test(q);
-  const isReport     = /report|summary|overview|ملخص|تقرير/.test(q);
-  const isBalance    = /balance|account|card|رصيد|حساب/.test(q);
+  const isGreeting = /^(hi|hey|hello|سلام|مرحبا|هلا|صباح|مساء)\b/.test(q);
+  const isVague    = /^(ok|okay|sure|hmm|oh|ah|right|yeah|yep|nope|no|yes|k|mm|what\??|idk|i don['']?t know|not sure|dunno|ما أدري|لا أعرف)\b/.test(q) || q.length < 6;
+  const isThanks   = /thank|شكر|مشكور/.test(q);
+  const isHelp     = /help|what can you|what do you|tell me|guide|assist|ساعدني|ماذا تقدر/.test(q);
+  const isReport   = /report|summary|overview|ملخص|تقرير/.test(q);
+  const isBalance  = /balance|account|card|رصيد|حساب/.test(q);
 
-  if (isGreeting) {
+  if (isGreeting)
     return mode === 'personal'
       ? { text: `Hello ${firstName}! 👋 I'm Modrik, your personal finance AI. I can help you with your portfolio, behavioral score, spending analysis, savings goals, or emotional finance coaching. What would you like to explore today?` }
       : { text: `Hello! I'm Modrik, your business financial advisor. I have real-time access to your cash flow, expenses, revenue, and forecasts. How can I help you today?` };
-  }
 
-  if (isThanks) {
+  if (isThanks)
     return { text: `Glad I could help, ${firstName}! Anytime you want to check your portfolio, review your spending, or talk through a financial decision — I'm right here. 💙` };
-  }
 
-  if (isHelp) {
+  if (isHelp)
     return mode === 'personal'
       ? { text: `Here's what I can do for you, ${firstName}:\n\n📊 Portfolio & investments analysis\n🧠 Behavioral score & emotional coaching\n💳 Spending breakdown & budget alerts\n🎯 Savings goals tracking\n🔒 Panic-sell protection\n📈 Investment history & recovery stats\n\nJust type what you're curious about — or pick a quick option below!` }
       : { text: `Here's what I can help with:\n\n💵 Cash flow analysis & 30-day forecasts\n📉 Expense optimization\n🏦 Loan eligibility & financing options\n📊 Revenue trends & KPIs\n🔮 Quarterly & annual forecasts\n📑 VAT & compliance insights\n\nWhat would you like to dig into?` };
-  }
 
-  if (isReport || (mode === 'personal' && isBalance)) {
+  if (isReport || (mode === 'personal' && isBalance))
     return mode === 'personal'
       ? { text: `Here's your snapshot, ${firstName}:\n\n💰 Total Balance: SAR 8,650\n📈 Portfolio Growth: +3.2% this quarter\n🧠 Behavioral Score: 87/100 (top 18%)\n❤️ Emotional Stability: 88%\n💳 Savings Rate: 32.4%\n🎯 Emergency Fund: 77% complete\n\nWant me to go deeper on any of these?` }
       : { text: `Business snapshot:\n\n💵 Revenue: SAR 310K (+12% YoY)\n📉 Expenses: SAR 280K\n📊 Net Cash Flow: +SAR 90K\n🏥 Health Score: 89/100\n🏦 Cash Position: SAR 420K\n⏰ Pending Invoices: SAR 87K this week\n\nWhat would you like to drill into?` };
-  }
 
-  // ── Personal mode intents ────────────────────────────────────────────────
   if (mode === 'personal') {
     if (/score|behavioral|assessment|discipline|stability/.test(q))
       return { text: `${firstName}, your Behavioral Score is 87/100 — placing you in the top 18% of Madarik users.\n\n✅ Discipline: 92/100\n✅ Stability: 85/100\n⚠️ Patience during volatility: room to grow\n\nYour score improved +4 points this month. Would you like to take the full Behavioral Assessment to unlock personalized coaching?` };
@@ -116,7 +107,6 @@ function getLocalResponse(
     if (/talk|breathe|calm|ground|relax/.test(q))
       return { text: `It's completely normal to feel uncertain, ${firstName}.\n\nHere's a quick grounding exercise: take 3 slow, deep breaths.\n\nYour money is in diversified assets — a short-term dip is within your risk tolerance. The market has recovered from every correction in the past 5 years. You've already avoided 2 panic-sell events this year by staying disciplined.\n\nYou're doing great. 💙` };
 
-    // ── Vague/unknown personal ───────────────────────────────────────────
     if (isVague) {
       const options = [
         `No problem! Here are some things I can dig into for you right now:\n\n• Your Behavioral Score (currently 87)\n• Portfolio & investment recommendations\n• Spending breakdown this month\n• Savings goal progress\n• Emotional finance coaching\n\nWhich one interests you?`,
@@ -127,11 +117,9 @@ function getLocalResponse(
       return { text: options[_defaultRotate] };
     }
 
-    // Generic personal fallback
     return { text: `I heard you, ${firstName}. Your financial health score is 87/100 today.\n\n📊 Savings rate: 32.4%\n📈 Portfolio growth: +3.2% this quarter\n🧠 Behavioral Score: 87\n\nTell me what you'd like to dig into — investments, spending, savings goals, or behavioral coaching.` };
   }
 
-  // ── Business mode intents ────────────────────────────────────────────────
   if (/cash.?flow|cashflow|liquidity|inflow|outflow/.test(q))
     return { text: `Cash flow analysis:\n\n💵 Inflow: SAR 370K\n📤 Outflow: SAR 280K\n📊 Net: +SAR 90K\n\n30-day forecast: +SAR 120K surplus\n\nRecommendation: move SAR 45K to a high-yield business account now. Cash runway is 4.2 months — healthy. Want a breakdown by cost center?` };
 
@@ -163,29 +151,20 @@ function getLocalResponse(
     return { text: options[_defaultRotate] };
   }
 
-  // Generic business fallback
   return { text: `Business snapshot:\n\n🏥 Health Score: 89/100\n💵 Revenue: SAR 310K (+12%)\n💰 Cash Position: SAR 420K\n⏰ Upcoming payments: SAR 125K this week\n\nAsk me about cash flow, expenses, loans, payroll, VAT, or revenue forecasts — I have the details ready.` };
 }
 
-const PERSONAL_QUICK = ['Yes, protect my portfolio', 'Show History', 'Talk it out', 'My behavioral score'];
-const BUSINESS_QUICK = ['Analyze cash flow', 'Reduce expenses', 'Loan eligibility', 'Revenue forecast'];
-
-// ── Initial bot message matching spec ─────────────────────────────────────────
 function buildInitial(isPersonal: boolean, firstName: string): Message {
   if (isPersonal) {
     return {
-      id: '0',
-      role: 'assistant',
+      id: '0', role: 'assistant', time: nowTime(),
       text: `Hi ${firstName}! I noticed the crypto market is experiencing a sudden 6% drop, and you've opened the app 4 times in the last hour.\n\nTake a deep breath. Historically, holding during this phase saved you money.\n\nWould you like to lock your panic-sell button for the next 24 hours?`,
-      time: nowTime(),
       miniCard: { label: 'Historical Recovery', value: '﷼ 1,200 saved' },
     };
   }
   return {
-    id: '0',
-    role: 'assistant',
+    id: '0', role: 'assistant', time: nowTime(),
     text: "Hello! I'm Modrik, your AI business financial advisor. I have real-time access to your business data and can help with cash flow, expenses, financing, and forecasting. How can I assist?",
-    time: nowTime(),
   };
 }
 
@@ -193,10 +172,14 @@ export default function AIScreen() {
   const insets = useSafeAreaInsets();
   const { mode } = useAppMode();
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const firstName = user?.name?.split(' ')[0] || 'there';
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPad = Platform.OS === 'web' ? 34 : insets.bottom;
   const isPersonal = mode === 'personal';
+
+  const PERSONAL_QUICK = [t('aiPersonalQ1'), t('aiPersonalQ2'), t('aiPersonalQ3'), t('aiPersonalQ4')];
+  const BUSINESS_QUICK = [t('aiBusinessQ1'), t('aiBusinessQ2'), t('aiBusinessQ3'), t('aiBusinessQ4')];
 
   const [messages, setMessages] = useState<Message[]>([buildInitial(isPersonal, firstName)]);
   const [input, setInput] = useState('');
@@ -207,7 +190,6 @@ export default function AIScreen() {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
-    // Capture history before state update (messages stored newest-first → reverse for API)
     const historyForApi = [...messages]
       .reverse()
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.text }));
@@ -219,12 +201,9 @@ export default function AIScreen() {
     setLoading(true);
 
     const aiMsgId = `ai-${Date.now()}`;
-
-    // API URL — relative path works on web via Replit's path-based routing
-    const apiUrl =
-      Platform.OS === 'web' && typeof window !== 'undefined'
-        ? `${window.location.origin}/api/chat`
-        : null;
+    const apiUrl = Platform.OS === 'web' && typeof window !== 'undefined'
+      ? `${window.location.origin}/api/chat`
+      : null;
 
     try {
       if (apiUrl) {
@@ -233,18 +212,13 @@ export default function AIScreen() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: historyForApi, mode: mode ?? 'personal' }),
         });
-
         if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
-
-        // Show streaming bubble, hide typing indicator
         setLoading(false);
         setMessages(prev => [{ id: aiMsgId, role: 'assistant', text: '', time: nowTime() }, ...prev]);
-
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         let fullText = '';
-
         outer: while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -262,17 +236,13 @@ export default function AIScreen() {
                 setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: fullText } : m));
               }
             } catch (parseErr: unknown) {
-              // Only re-throw actual API errors, skip malformed SSE lines
               if (parseErr instanceof Error && parseErr.message !== 'SyntaxError') throw parseErr;
             }
           }
         }
-
-        if (fullText) return; // Success — loading already set to false above
-        throw new Error('Empty stream'); // Fall through to local
+        if (fullText) return;
+        throw new Error('Empty stream');
       }
-
-      // ── No API URL (native) or API returned empty ── use local engine ────
       await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
       const response = getLocalResponse(trimmed, mode ?? 'personal', firstName);
       setMessages(prev => {
@@ -281,7 +251,6 @@ export default function AIScreen() {
         return existing ? prev.map(m => m.id === aiMsgId ? updated : m) : [updated, ...prev];
       });
     } catch {
-      // API unavailable or error — fall back to local engine
       const response = getLocalResponse(trimmed, mode ?? 'personal', firstName);
       setMessages(prev => {
         const existing = prev.find(m => m.id === aiMsgId);
@@ -289,7 +258,6 @@ export default function AIScreen() {
         return existing ? prev.map(m => m.id === aiMsgId ? updated : m) : [updated, ...prev];
       });
     } finally {
-      // Always reset loading — this is the only place it needs to be cleared
       setLoading(false);
     }
   };
@@ -305,11 +273,9 @@ export default function AIScreen() {
         )}
         <View style={{ maxWidth: '78%' }}>
           <View style={[styles.bubble, isAI ? styles.bubbleAI : styles.bubbleUser]}>
-            <Text style={[styles.bubbleText, isAI ? styles.bubbleTextAI : styles.bubbleTextUser]}>
+            <Text style={[styles.bubbleText, isAI ? styles.bubbleTextAI : styles.bubbleTextUser, isRTL && { textAlign: 'right' }]}>
               {item.text}
             </Text>
-
-            {/* Nested mini-card */}
             {item.miniCard && (
               <View style={styles.miniCard}>
                 <Ionicons name="shield-checkmark-outline" size={13} color={C.green} />
@@ -319,7 +285,6 @@ export default function AIScreen() {
                 </View>
               </View>
             )}
-
             <Text style={[styles.bubbleTime, isAI ? styles.bubbleTimeAI : styles.bubbleTimeUser]}>
               {item.time}
             </Text>
@@ -329,22 +294,19 @@ export default function AIScreen() {
     );
   };
 
-  // Today date stamp
-  const stamp = `TODAY • ${nowTime().replace(/:\d\d\s(AM|PM)/, '')}${(() => { const d = new Date(); const h = d.getHours(); const m = d.getMinutes(); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; })()}`.replace('TODAY • ', 'TODAY • ');
-
   return (
     <View style={styles.container}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <LinearGradient colors={['#0f172a', '#1e1b4b']} style={[styles.header, { paddingTop: topPad + 12 }]}>
-        <View style={styles.headerLeft}>
+        <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={styles.modrikAvatar}>
             <Ionicons name="sparkles" size={16} color="#fff" />
           </View>
-          <View>
+          <View style={isRTL ? { alignItems: 'flex-end' } : undefined}>
             <Text style={styles.headerTitle}>Modrik</Text>
-            <View style={styles.onlineRow}>
+            <View style={[styles.onlineRow, isRTL && { flexDirection: 'row-reverse' }]}>
               <View style={styles.onlineDot} />
-              <Text style={styles.onlineText}>AI Analyst · Analyzing market sentiment...</Text>
+              <Text style={styles.onlineText}>{t('aiAnalyzing')}</Text>
             </View>
           </View>
         </View>
@@ -355,12 +317,12 @@ export default function AIScreen() {
 
       {/* ── Panic-protect banner (personal mode) ────────────────────── */}
       {isPersonal && (
-        <View style={styles.alertBanner}>
+        <View style={[styles.alertBanner, isRTL && { flexDirection: 'row-reverse' }]}>
           <Ionicons name="warning-outline" size={13} color="#f59e0b" />
-          <Text style={styles.alertText}> Modrik: Market volatility detected. Emotional stability: 88%</Text>
-          <TouchableOpacity style={styles.protectBtn} onPress={() => sendMessage('Yes, protect my portfolio')}>
+          <Text style={[styles.alertText, isRTL && { textAlign: 'right' }]}> {t('aiVolatilityAlert')}</Text>
+          <TouchableOpacity style={styles.protectBtn} onPress={() => sendMessage(t('aiPersonalQ1'))}>
             <Ionicons name="shield-checkmark-outline" size={12} color="#fff" />
-            <Text style={styles.protectText}> Protect</Text>
+            <Text style={styles.protectText}> {t('aiProtect')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -380,10 +342,9 @@ export default function AIScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
-            /* Date stamp shown at "top" (footer in inverted list) */
             <View style={styles.dateStamp}>
               <Text style={styles.dateStampText}>
-                TODAY • {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {t('aiToday')} • {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
             </View>
           }
@@ -394,14 +355,13 @@ export default function AIScreen() {
                   <Ionicons name="sparkles" size={12} color="#fff" />
                 </View>
                 <View style={[styles.bubble, styles.bubbleAI]}>
-                  {/* Calculating risks status */}
                   <View style={styles.calculatingRow}>
                     <View style={styles.typingDots}>
                       {[0.35, 0.65, 1].map((op, i) => (
                         <View key={i} style={[styles.typingDot, { opacity: op }]} />
                       ))}
                     </View>
-                    <Text style={styles.calculatingText}>Modrik is calculating risks...</Text>
+                    <Text style={styles.calculatingText}>{t('aiCalculating')}</Text>
                   </View>
                 </View>
               </View>
@@ -422,16 +382,12 @@ export default function AIScreen() {
 
         {/* ── Input bar ────────────────────────────────────────────── */}
         <View style={[styles.inputBar, { paddingBottom: Math.max(bottomPad, 16) }]}>
-          <View style={styles.inputWrap}>
+          <View style={[styles.inputWrap, isRTL && { flexDirection: 'row-reverse' }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, isRTL && { textAlign: 'right' }]}
               value={input}
               onChangeText={setInput}
-              placeholder={
-                isPersonal
-                  ? 'Type a message, or ask Modrik about your assets...'
-                  : 'Ask Modrik anything...'
-              }
+              placeholder={isPersonal ? t('aiTypePlaceholderPersonal') : t('aiTypePlaceholder')}
               placeholderTextColor="#94a3b8"
               maxLength={500}
               returnKeyType="send"
@@ -443,7 +399,7 @@ export default function AIScreen() {
               disabled={!input.trim() || loading}
               activeOpacity={0.85}
             >
-              <Ionicons name="arrow-up" size={17} color="#fff" />
+              <Ionicons name={isRTL ? 'arrow-back' : 'arrow-up'} size={17} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -454,8 +410,6 @@ export default function AIScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-
-  // Header
   header:        { paddingHorizontal: 16, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerLeft:    { flexDirection: 'row', alignItems: 'center', gap: 12 },
   modrikAvatar:  { width: 42, height: 42, borderRadius: 21, backgroundColor: C.purple, alignItems: 'center', justifyContent: 'center' },
@@ -464,18 +418,12 @@ const styles = StyleSheet.create({
   onlineDot:     { width: 6, height: 6, borderRadius: 3, backgroundColor: C.green },
   onlineText:    { fontSize: 10, color: '#94a3b8', fontFamily: 'Inter_400Regular' },
   headerAction:  { padding: 4 },
-
-  // Alert banner
   alertBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1e1b4b', paddingHorizontal: 14, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)' },
   alertText:   { flex: 1, fontSize: 11, color: '#fde68a', fontFamily: 'Inter_400Regular' },
   protectBtn:  { flexDirection: 'row', alignItems: 'center', backgroundColor: C.purple, borderRadius: 10, paddingVertical: 5, paddingHorizontal: 10 },
   protectText: { fontSize: 11, fontWeight: '600', color: '#fff', fontFamily: 'Inter_600SemiBold' },
-
-  // Date stamp
   dateStamp:     { alignItems: 'center', marginBottom: 14 },
   dateStampText: { fontSize: 10, color: '#94a3b8', fontFamily: 'Inter_500Medium', letterSpacing: 0.5 },
-
-  // Messages
   msgRow:        { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-end' },
   msgRowAI:      { justifyContent: 'flex-start' },
   msgRowUser:    { justifyContent: 'flex-end' },
@@ -489,25 +437,17 @@ const styles = StyleSheet.create({
   bubbleTime:    { fontSize: 10, marginTop: 6, fontFamily: 'Inter_400Regular' },
   bubbleTimeAI:  { color: '#94a3b8' },
   bubbleTimeUser:{ color: 'rgba(255,255,255,0.6)' },
-
-  // Mini-card inside bubble
   miniCard:       { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0fdf4', borderRadius: 10, padding: 10, marginTop: 10, borderWidth: 1, borderColor: '#bbf7d0' },
   miniCardLabel:  { fontSize: 9, color: '#6b7280', fontFamily: 'Inter_400Regular' },
   miniCardValue:  { fontSize: 14, fontWeight: '700', color: C.green, fontFamily: 'Inter_700Bold' },
-
-  // Calculating indicator
   calculatingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   typingDots:     { flexDirection: 'row', gap: 4 },
   typingDot:      { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#94a3b8' },
   calculatingText:{ fontSize: 11, color: '#94a3b8', fontFamily: 'Inter_400Regular', fontStyle: 'italic' },
-
-  // Quick choices
   quickWrap:   { borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingVertical: 8 },
   quickRow:    { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
   quickChip:   { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#eef2ff', borderWidth: 1, borderColor: '#c7d2fe' },
   quickChipText:{ fontSize: 12, color: C.purple, fontFamily: 'Inter_600SemiBold' },
-
-  // Input bar
   inputBar:  { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f1f5f9', padding: 12 },
   inputWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: '#f8fafc', borderRadius: 22, borderWidth: 1, borderColor: '#e2e8f0', paddingHorizontal: 14, paddingVertical: 8 },
   input:     { flex: 1, fontSize: 14, color: '#1e293b', maxHeight: 100, fontFamily: 'Inter_400Regular' },
