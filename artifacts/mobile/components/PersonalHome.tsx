@@ -120,7 +120,7 @@ export default function PersonalHome() {
       {/* ── Transactions ──────────────────────────────────────────────── */}
       <View style={[styles.sectionHeader, isRTL && { flexDirection: 'row-reverse' }]}>
         <Text style={styles.sectionTitle}>{t('homeRecentTx')}</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/notifications')}>
           <Text style={styles.sectionLink}>{t('homeViewAll')}</Text>
         </TouchableOpacity>
       </View>

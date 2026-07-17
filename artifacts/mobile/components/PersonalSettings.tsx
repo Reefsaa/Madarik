@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useAppMode } from '@/context/AppModeContext';
@@ -128,7 +128,16 @@ export default function PersonalSettings() {
         </View>
 
         {/* Referral code */}
-        <TouchableOpacity style={styles.referralCard} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.referralCard}
+          activeOpacity={0.85}
+          onPress={() =>
+            Alert.alert(
+              isRTL ? 'رمز الإحالة' : 'Referral Code',
+              `${isRTL ? 'رمزك:' : 'Your code:'} MDK-${(user?.email ?? 'USER').replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase()}`,
+            )
+          }
+        >
           <Ionicons name="qr-code-outline" size={20} color="#1e40af" />
           <Text style={styles.referralText}>{t('settingsReferral')}</Text>
         </TouchableOpacity>

@@ -45,8 +45,14 @@ export default function BusinessSettings() {
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
-  const comingSoon = (label: string) => {
-    Alert.alert(label, isRTL ? 'هذه الميزة ستكون متاحة قريباً.' : 'This feature will be available soon.');
+  const showCurrencyInfo = () => {
+    Alert.alert(
+      isRTL ? 'العملة' : 'Currency',
+      isRTL
+        ? 'العملة الافتراضية هي الريال السعودي (SAR). دعم العملات المتعددة قيد التطوير.'
+        : 'Your default currency is Saudi Riyal (SAR). Multi-currency support is under development.',
+      [{ text: isRTL ? 'حسناً' : 'OK' }],
+    );
   };
 
   const handleLogout = async () => {
@@ -70,7 +76,7 @@ export default function BusinessSettings() {
       items: [
         { icon: 'notifications-outline' as const, label: t('settingsNotifications'), onPress: () => router.push('/notification-settings') },
         { icon: 'language-outline' as const,      label: t('settingsLanguage'),      value: language === 'en' ? 'EN' : 'ع', onPress: () => router.push('/language-settings') },
-        { icon: 'cash-outline' as const,          label: t('settingsCurrency'),      value: 'SAR', onPress: () => comingSoon(t('settingsCurrency')) },
+        { icon: 'cash-outline' as const,          label: t('settingsCurrency'),      value: 'SAR', onPress: showCurrencyInfo },
       ],
     },
     {

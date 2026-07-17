@@ -25,17 +25,38 @@ const LOGO = require('@/assets/images/madarik-logo.png');
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+      {/* Core navigation groups */}
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
+
+      {/* Business screens */}
       <Stack.Screen name="loan-review" />
       <Stack.Screen name="upcoming-payments" />
       <Stack.Screen name="cash-flow" />
       <Stack.Screen name="ai-recommendations" />
       <Stack.Screen name="ai-report" />
       <Stack.Screen name="ai-alerts" />
+
+      {/* Personal screens */}
       <Stack.Screen name="behavioral-assessment" />
+      <Stack.Screen name="investments" />
+      <Stack.Screen name="savings" />
+
+      {/* Shared settings screens */}
+      <Stack.Screen name="personal-info" />
+      <Stack.Screen name="cards" />
+      <Stack.Screen name="privacy-security" />
+      <Stack.Screen name="notification-settings" />
+      <Stack.Screen name="language-settings" />
+      <Stack.Screen name="support" />
+      <Stack.Screen name="notifications" />
+
+      {/* Business settings screens */}
+      <Stack.Screen name="company-details" />
+      <Stack.Screen name="payment-methods" />
+      <Stack.Screen name="billing" />
     </Stack>
   );
 }

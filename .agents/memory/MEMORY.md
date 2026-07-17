@@ -1,2 +1,3 @@
 - [Madarik Dual-Mode Architecture](madarik-architecture.md) — dual-mode app (Business/Personal) with AppModeContext; mode stored in AsyncStorage; mode selector after every fresh login.
 - [Madarik API Server](madarik-api.md) — Claude streaming chat at /api/chat (SSE); previewPath="/api"; must restart workflow after adding ANTHROPIC_API_KEY for it to load.
+- [Expo Router screen registration](expo-router-screen-registration.md) — every new app/<name>.tsx must have a <Stack.Screen name="<name>" /> in _layout.tsx or router.push() silently fails.
