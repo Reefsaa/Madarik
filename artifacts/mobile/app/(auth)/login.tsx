@@ -123,8 +123,8 @@ export default function LoginScreen() {
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    style={{ padding: 6 }}
+                    hitSlop={{ top: 10, bottom: 10, left: 0, right: 10 }}
+                    style={{ paddingVertical: 6, paddingHorizontal: 4 }}
                   >
                     <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color="#6b7280" />
                   </TouchableOpacity>
